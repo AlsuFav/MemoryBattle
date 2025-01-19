@@ -1,4 +1,4 @@
-package ru.itis.memorybattle.settings;
+package ru.itis.memorybattle.utils;
 
 public class GameSettings {
 

@@ -1,4 +1,4 @@
-package ru.itis.memorybattle.settings;
+package ru.itis.memorybattle.utils;
 
 /**
  * This class provides strings that are shown in exceptions

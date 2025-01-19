@@ -2,10 +2,10 @@ package ru.itis.memorybattle.protocol;
 
 import ru.itis.memorybattle.exceptions.*;
 import ru.itis.memorybattle.model.Message;
-import ru.itis.memorybattle.settings.GameMessageProvider;
-import ru.itis.memorybattle.settings.GameSettings;
-import ru.itis.memorybattle.settings.LogMessages;
-import ru.itis.memorybattle.settings.MessageType;
+import ru.itis.memorybattle.utils.GameMessageProvider;
+import ru.itis.memorybattle.utils.GameSettings;
+import ru.itis.memorybattle.utils.LogMessages;
+import ru.itis.memorybattle.utils.MessageType;
 
 import java.io.IOException;
 import java.io.InputStream;
