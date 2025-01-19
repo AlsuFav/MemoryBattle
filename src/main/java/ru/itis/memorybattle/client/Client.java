@@ -1,12 +1,22 @@
 package ru.itis.memorybattle.client;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.Socket;
+import java.net.*;
 
-public class Client {
+import javax.swing.*;
+import java.awt.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.*;
+
+public class Client extends Component {
     private final String serverAddress;
     private final int port;
     private Socket socket;
@@ -14,6 +24,8 @@ public class Client {
     private PrintWriter out;
     private boolean connected;
     private String name;
+    private GameListener gameListener;
+
 
     public Client(String serverAddress, int port) {
         this.serverAddress = serverAddress;
@@ -45,18 +57,6 @@ public class Client {
         }
     }
 
-    public void listen(ServerResponseHandler handler) {
-        new Thread(() -> {
-            try {
-                String response;
-                while ((response = in.readLine()) != null) {
-                    handler.handle(response);
-                }
-            } catch (IOException e) {
-                System.out.println("Соединение потеряно: " + e.getMessage());
-            }
-        }).start();
-    }
 
     public boolean isConnected() {
         return connected;
@@ -64,5 +64,35 @@ public class Client {
 
     public String getName() {
         return name;
+    }
+
+    public void addGameListener(GameListener listener) {
+        this.gameListener = listener;
+        new Thread(this::listenForServerMessages).start();
+    }
+
+    private void listenForServerMessages() {
+        try {
+            String message;
+            while ((message = in.readLine()) != null) {
+                if (gameListener != null) {
+                    gameListener.onGameMessage(message);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void handleEndGame(String message) {
+        String[] parts = message.split(" ");
+        StringBuilder result = new StringBuilder("Игра окончена! Результаты:\n");
+
+        for (int i = 1; i < parts.length; i++) {
+            result.append(parts[i]).append("\n");
+        }
+
+        JOptionPane.showMessageDialog(this, result.toString());
+        System.exit(0);
     }
 }
