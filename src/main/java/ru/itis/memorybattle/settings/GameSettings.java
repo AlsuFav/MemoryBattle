@@ -1,0 +1,15 @@
+package ru.itis.memorybattle.settings;
+
+public class GameSettings {
+
+    // system properties
+    public static final int PORT_LENGTH = 4;
+    public static final int SECONDS_IN_MINUTE = 60;
+    public static final int MINUTES_IN_HOUR = 60;
+    public static final int INTEGER_BYTES = 4;
+    public static final int DOUBLE_BYTES = 8;
+
+
+    private GameSettings() {
+    }
+}
