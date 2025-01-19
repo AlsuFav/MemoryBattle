@@ -6,37 +6,35 @@ public class GameLogic {
     private final int rows;
     private final int cols;
     private final Card[][] board;
+    private final Map<String, Integer> scores;
+    private int currentPlayerIndex;
     private boolean isGameOver;
 
     public GameLogic(int rows, int cols) {
         this.rows = rows;
         this.cols = cols;
         this.board = new Card[rows][cols];
+        this.scores = new HashMap<>();
+        this.currentPlayerIndex = 0;
         this.isGameOver = false;
         initializeBoard();
     }
 
-    // Инициализация игрового поля с парами карточек
     private void initializeBoard() {
-        List<Integer> ids = new ArrayList<>();
-        int totalPairs = (rows * cols) / 2;
+        int totalСards = (rows * cols);
+        ArrayList<Integer> ids = new ArrayList<>();
 
-        for (int i = 1; i <= totalPairs; i++) {
+        for (int i = 0; i < totalСards; i++) {
             ids.add(i);
-            ids.add(i); // Добавляем пару
         }
-        Collections.shuffle(ids);
 
         Iterator<Integer> iterator = ids.iterator();
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                board[i][j] = new Card(iterator.next());
+                int id = iterator.next();
+                board[i][j] = new Card(id, id / 2);
             }
         }
-    }
-
-    public Card getCard(int row, int col) {
-        return board[row][col];
     }
 
     public boolean makeMove(int row1, int col1, int row2, int col2) {
@@ -45,16 +43,17 @@ public class GameLogic {
         Card card1 = board[row1][col1];
         Card card2 = board[row2][col2];
 
-        if (card1.isMatched() || card2.isMatched() || card1 == card2) {
+        if (card1.isMatched() || card2.isMatched() || card1.equals(card2)) {
             return false; // Нельзя выбрать уже найденные карточки или одну и ту же
         }
 
         card1.setRevealed(true);
         card2.setRevealed(true);
 
-        if (card1.getId() == card2.getId()) {
+        if (card1.isSimilar(card2)) {
             card1.setMatched(true);
             card2.setMatched(true);
+            scores.put("Player" + currentPlayerIndex, scores.getOrDefault("Player" + currentPlayerIndex, 0) + 1);
             checkGameOver();
             return true; // Пара найдена
         } else {
@@ -77,12 +76,19 @@ public class GameLogic {
         return isGameOver;
     }
 
-    public void printBoard() {
-        for (Card[] row : board) {
-            for (Card card : row) {
-                System.out.print(card + " ");
-            }
-            System.out.println();
-        }
+    public int getCurrentPlayerIndex() {
+        return currentPlayerIndex;
+    }
+
+    public void switchPlayer() {
+        currentPlayerIndex = (currentPlayerIndex + 1) % 2;
+    }
+
+    public Map<String, Integer> getScores() {
+        return scores;
+    }
+
+    public Card getCard(int row, int col) {
+        return board[row][col];
     }
 }
