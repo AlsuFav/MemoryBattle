@@ -1,13 +1,17 @@
 package ru.itis.memorybattle.gui;
 
 import ru.itis.memorybattle.client.Client;
+import ru.itis.memorybattle.core.Card;
 import ru.itis.memorybattle.gui.components.CardButton;
+import ru.itis.memorybattle.repository.CardDaoImpl;
+import ru.itis.memorybattle.service.CardService;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.HashMap;
-import java.util.Map;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.List;
 
 public class MainUI extends JFrame {
     private final int rows;
@@ -16,12 +20,15 @@ public class MainUI extends JFrame {
     private final Client client;
     private CardButton firstSelected = null;
     private final Map<String, CardButton> cardButtons = new HashMap<>();
+    private final List<Card> cards = new ArrayList<>();
     private boolean isPlayerTurn = false; // Флаг хода текущего игрока
+    private final CardService cardService;
 
-    public MainUI(Client client, int rows, int cols) {
+    public MainUI(Client client, int rows, int cols, CardService cardService) {
         this.client = client;
         this.rows = rows;
         this.cols = cols;
+        this.cardService = cardService;
 
         setTitle("Memory Game");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -30,6 +37,9 @@ public class MainUI extends JFrame {
         boardPanel = new JPanel();
         boardPanel.setLayout(new GridLayout(rows, cols));
         add(boardPanel, BorderLayout.CENTER);
+        // Загрузить карты из базы данных
+        loadCards();
+
 
         // Слушаем события от сервера
         client.addGameListener(message -> {
@@ -59,14 +69,31 @@ public class MainUI extends JFrame {
         setVisible(true);
     }
 
+    private void loadCards() {
+        try {
+            List<Card> loadedCards = cardService.getAllCards();
+            cards.addAll(loadedCards);
+
+            // Перемешиваем карты
+//            Collections.shuffle(cards);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Ошибка загрузки карт из базы данных!");
+        }
+    }
+
+
     // Инициализация доски
     private void initializeGameBoard() {
         boardPanel.removeAll();
         cardButtons.clear();
 
+        Iterator<Card> iterator = cards.iterator();
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                CardButton button = new CardButton(i, j);
+                if (!iterator.hasNext()) break;
+                Card card = iterator.next();
+                CardButton button = new CardButton(i, j, card.getId(), card.getImagePath());
                 button.addActionListener(this::handleCardClick);
                 cardButtons.put(i + "-" + j, button);
                 boardPanel.add(button);
@@ -80,6 +107,7 @@ public class MainUI extends JFrame {
     // Обработка клика на карточку
     private void handleCardClick(ActionEvent e) {
         if (!isPlayerTurn) {
+            JOptionPane.showMessageDialog(this, "Сейчас не ваш ход!");
             return; // Если не наш ход, не можем сделать движение
         }
 
