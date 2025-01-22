@@ -144,9 +144,10 @@ public class Client extends Component {
                             String[] parts = new String(message.getData(), StandardCharsets.UTF_8).split(" ");
                             int x = Integer.parseInt(parts[0]);
                             int y = Integer.parseInt(parts[1]);
-                            int uniqueCardId = Integer.parseInt(parts[2]);
+                            String source = parts[2];
 
-                            mainUI.handleCardOpen(x, y, uniqueCardId);
+
+                            mainUI.handleCardOpen(x, y, source);
                         }
                     }
                 }

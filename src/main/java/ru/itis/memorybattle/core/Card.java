@@ -7,12 +7,16 @@ public class Card {
     private boolean isMatched; // Флаг, найдена ли пара
     private boolean isRevealed; // Флаг, открыта ли карточка
     private final int uniqueCardId;
+    private final CardType type; // Тип карты
+    private final String imagePath; // Путь до изображения карты
 
-    public Card(int id, int uniqueCardId) {
+    public Card(int id, int uniqueCardId, CardType type, String imagePath) {
         this.id = id;
-        this.isMatched = false;
-        this.isRevealed = false;
-        this.uniqueCardId = uniqueCardId;
+        this.isMatched = false; // По умолчанию false
+        this.isRevealed = false; // По умолчанию false
+        this.uniqueCardId = uniqueCardId; // Уникальный ID только для NORMAL карт
+        this.type = type;
+        this.imagePath = imagePath;
     }
 
     public int getId() {
@@ -37,6 +41,14 @@ public class Card {
 
     public void setRevealed(boolean revealed) {
         isRevealed = revealed;
+    }
+
+    public CardType getType() {
+        return type;
+    }
+
+    public String getImagePath() {
+        return imagePath;
     }
 
     @Override

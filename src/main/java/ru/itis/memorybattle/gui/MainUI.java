@@ -81,9 +81,9 @@ public class MainUI extends JFrame {
         }
     }
 
-    public void handleCardOpen(int x, int y, int uniqueCardId) {
+    public void handleCardOpen(int x, int y, String source) {
         CardButton button = cardButtons.get(x + "-" + y);
-        button.open(uniqueCardId);
+        button.open(source);
     }
 
     public void handleCardClose(int x, int y) {

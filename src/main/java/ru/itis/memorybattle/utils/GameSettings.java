@@ -4,6 +4,7 @@ public class GameSettings {
 
     public static final int ROWS = 4;
     public static final int COLS = 4;
+    public static final int PORT = 12345;
 
     // system properties
     public static final int PORT_LENGTH = 4;

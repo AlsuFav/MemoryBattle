@@ -26,19 +26,21 @@ public class CardButton extends JButton {
         return col;
     }
 
-    public boolean isFlipped() {
-        return isFlipped;
-    }
-
-    public void open(int uniqueCardId) {
+    public void open(String source) {
         isFlipped = !isFlipped;
-        setText(String.valueOf(uniqueCardId));
+        ImageIcon icon = new ImageIcon(
+                new ImageIcon(getClass().getResource(source)) // Загружаем из ресурсов
+                        .getImage()
+                        .getScaledInstance(80, 80, Image.SCALE_SMOOTH) // Масштабируем изображение
+        );
+        setIcon(icon);
         setBackground(Color.WHITE);
+
     }
 
     public void close() {
         isFlipped = !isFlipped;
-        setText("");
+        setIcon(null);
         setBackground(Color.GRAY);
     }
 
@@ -48,8 +50,5 @@ public class CardButton extends JButton {
 
     public void setMatched(boolean matched) {
         isMatched = matched;
-        if (matched) {
-            setBackground(Color.GREEN); // Зеленый для совпавших
-        }
     }
 }

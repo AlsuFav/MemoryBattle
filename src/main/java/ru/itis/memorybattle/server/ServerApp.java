@@ -1,10 +1,25 @@
 package ru.itis.memorybattle.server;
 
+import ru.itis.memorybattle.core.GameLogic;
+import ru.itis.memorybattle.repository.CardDao;
+import ru.itis.memorybattle.repository.impl.CardDaoImpl;
+import ru.itis.memorybattle.service.CardService;
+import ru.itis.memorybattle.service.impl.CardServiceImpl;
+
 import java.io.IOException;
+
+import static ru.itis.memorybattle.utils.GameSettings.*;
 
 public class ServerApp {
     public static void main(String[] args) throws IOException {
-        Server server = new Server(); // Укажите нужный порт
+        int port = PORT;
+
+        CardDao cardDao = new CardDaoImpl();
+        CardService cardService = new CardServiceImpl(cardDao);
+
+        GameLogic gameLogic = new GameLogic(ROWS, COLS, cardService);
+
+        Server server = new Server(port, gameLogic); // Укажите нужный порт
         server.start();
     }
 }

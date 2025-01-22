@@ -15,21 +15,25 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static ru.itis.memorybattle.utils.GameSettings.COLS;
-import static ru.itis.memorybattle.utils.GameSettings.ROWS;
 import static ru.itis.memorybattle.utils.MessageType.*;
 
 public class Server {
-    private static final int PORT = 12345;
+    private final int port;
 
-    private final List<ClientHandler> clients = new ArrayList<>();
-    private final GameLogic gameLogic = new GameLogic(ROWS, COLS); // Логика игры
-    private final Map<Integer, Integer> scores = new HashMap<>();
+    private final List<ClientHandler> clients;
+    private final GameLogic gameLogic; // Логика игры
+    private final Map<Integer, Integer> scores;
 
+    public Server(int port, GameLogic gameLogic) {
+        this.port = port;
+        this.clients = new ArrayList<>();
+        this.gameLogic = gameLogic;
+        this.scores = new HashMap<>();
+    }
 
     public void start() throws IOException {
         System.out.println("Сервер запущен. Ожидание игроков...");
-        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
             while (clients.size() < 2) {
                 Socket socket = serverSocket.accept();
                 InputStream input = socket.getInputStream();
@@ -43,7 +47,7 @@ public class Server {
 
                 new Thread(player).start();
 
-                System.out.println("Игрок подключён: " + player.getName());
+                System.out.println("Игрок подключён...");
             }
 
             System.out.println("Оба игрока подключены. Игра начинается!");
@@ -56,7 +60,7 @@ public class Server {
     }
 
     private void sendStartGame() {
-        Message message = GameMessageProvider.createMessage(START_GAME, STR."\{ROWS} \{COLS}".getBytes());
+        Message message = GameMessageProvider.createMessage(START_GAME, STR."\{gameLogic.getRows()} \{gameLogic.getCols()}".getBytes());
         sendToAll(message);
     }
 
@@ -88,7 +92,7 @@ public class Server {
     private synchronized void handleCardOpenRequest (int x, int y) {
         Card card = gameLogic.getCard(x, y);
 
-        Message message = GameMessageProvider.createMessage(OPEN_CARDS_RESPONSE, (x + " " + y + " " + card.getUniqueCardId()).getBytes());
+        Message message = GameMessageProvider.createMessage(OPEN_CARDS_RESPONSE, (x + " " + y + " " + card.getImagePath()).getBytes());
         sendToAll(message);
     }
 

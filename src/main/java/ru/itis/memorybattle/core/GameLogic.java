@@ -1,5 +1,9 @@
 package ru.itis.memorybattle.core;
 
+import ru.itis.memorybattle.exceptions.DbException;
+import ru.itis.memorybattle.service.CardService;
+
+import java.sql.SQLException;
 import java.util.*;
 
 public class GameLogic {
@@ -9,30 +13,34 @@ public class GameLogic {
     private final Map<String, Integer> scores;
     private int currentPlayerIndex;
     private boolean isGameOver;
+    private CardService cardService;
 
-    public GameLogic(int rows, int cols) {
+    public GameLogic(int rows, int cols, CardService cardService) {
         this.rows = rows;
         this.cols = cols;
         this.board = new Card[rows][cols];
         this.scores = new HashMap<>();
         this.currentPlayerIndex = 0;
         this.isGameOver = false;
+        this.cardService = cardService;
+
         initializeBoard();
     }
 
     private void initializeBoard() {
-        int totalСards = (rows * cols);
-        ArrayList<Integer> ids = new ArrayList<>();
-
-        for (int i = 0; i < totalСards; i++) {
-            ids.add(i);
+        List<Card> cards;
+        try {
+            cards = cardService.getAllCards();
+        } catch (SQLException e) {
+            throw new DbException();
         }
+        // Перемешиваем карты
+//        Collections.shuffle(cards);
 
-        Iterator<Integer> iterator = ids.iterator();
+        Iterator<Card> iterator = cards.iterator();
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                int id = iterator.next();
-                board[i][j] = new Card(id, id / 2);
+                board[i][j] = iterator.next();
             }
         }
     }
@@ -90,5 +98,13 @@ public class GameLogic {
 
     public Card getCard(int row, int col) {
         return board[row][col];
+    }
+
+    public int getRows() {
+        return rows;
+    }
+
+    public int getCols() {
+        return cols;
     }
 }

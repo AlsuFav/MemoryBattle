@@ -4,6 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
+import static ru.itis.memorybattle.utils.GameSettings.PORT;
+
 public class ConfigUI extends JFrame {
     private JTextField ipField;
     private JTextField portField;
@@ -24,7 +26,7 @@ public class ConfigUI extends JFrame {
         add(ipField);
 
         add(new JLabel("Port:"));
-        portField = new JTextField("12345");
+        portField = new JTextField(Integer.toString(PORT));
         add(portField);
 
         add(new JLabel("Name:"));
