@@ -68,14 +68,27 @@ public class MainUI extends JFrame {
 
         if (firstSelected == null) {
             firstSelected = clickedButton;
-            firstSelected.flip();
+
+            client.sendCardOpenRequest(firstSelected.getRow(), firstSelected.getCol());
+
         } else {
             if (firstSelected.equals(clickedButton)) return; // Если это та же кнопка
 
-            clickedButton.flip();
+            client.sendCardOpenRequest(clickedButton.getRow(), clickedButton.getCol());
+
             client.sendMove(firstSelected.getRow(), firstSelected.getCol(), clickedButton.getRow(), clickedButton.getCol());
             firstSelected = null; // Сбросить после хода
         }
+    }
+
+    public void handleCardOpen(int x, int y, int uniqueCardId) {
+        CardButton button = cardButtons.get(x + "-" + y);
+        button.open(uniqueCardId);
+    }
+
+    public void handleCardClose(int x, int y) {
+        CardButton button = cardButtons.get(x + "-" + y);
+        button.close();
     }
 
     // Обработка совпадения карт
@@ -97,12 +110,8 @@ public class MainUI extends JFrame {
     public void handleNoMatch(int x1, int y1, int x2, int y2) {
 
         SwingUtilities.invokeLater(() -> {
-            CardButton card1 = cardButtons.get(x1 + "-" + y1);
-            CardButton card2 = cardButtons.get(x2 + "-" + y2);
-
-            // Переворачиваем карты обратно
-            card1.flip();
-            card2.flip();
+            handleCardClose(x1, y1);
+            handleCardClose(x2, y2);
         });
     }
 

@@ -66,6 +66,11 @@ public class Client extends Component {
         sendMessage(message);
     }
 
+    public void sendCardOpenRequest(int x, int y) {
+        Message message = GameMessageProvider.createMessage(OPEN_CARD_REQUEST, (x + " " + y).getBytes());
+        sendMessage(message);
+    }
+
     public void sendMessage(Message message) {
         try {
             Protocol.writeMessage(clientThread.getOutput(), message);
@@ -135,6 +140,13 @@ public class Client extends Component {
                             }
 
                             mainUI.handleEndGame(result.toString());
+                        } else if (type == OPEN_CARDS_RESPONSE) {
+                            String[] parts = new String(message.getData(), StandardCharsets.UTF_8).split(" ");
+                            int x = Integer.parseInt(parts[0]);
+                            int y = Integer.parseInt(parts[1]);
+                            int uniqueCardId = Integer.parseInt(parts[2]);
+
+                            mainUI.handleCardOpen(x, y, uniqueCardId);
                         }
                     }
                 }

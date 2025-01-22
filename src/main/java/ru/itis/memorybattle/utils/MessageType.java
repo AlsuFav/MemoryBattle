@@ -17,6 +17,10 @@ public class MessageType {
     public static final int NO_MATCH = 7;
     public static final int TURN = 8;
     public static final int NOT_YOUR_TURN = 16;
+    public static final int OPEN_CARD_REQUEST = 17;
+    public static final int OPEN_CARDS_RESPONSE = 18;
+    public static final int CARDS_CLOSE = 19;
+
 
     // Особые карточки
     public static final int SPECIAL_CARD_EXTRA_TURN = 9;

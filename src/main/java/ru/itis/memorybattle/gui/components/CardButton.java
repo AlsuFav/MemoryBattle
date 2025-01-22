@@ -30,10 +30,16 @@ public class CardButton extends JButton {
         return isFlipped;
     }
 
-    public void flip() {
+    public void open(int uniqueCardId) {
         isFlipped = !isFlipped;
-        setText(isFlipped ? "Card" : "");
-        setBackground(isFlipped ? Color.WHITE : Color.GRAY);
+        setText(String.valueOf(uniqueCardId));
+        setBackground(Color.WHITE);
+    }
+
+    public void close() {
+        isFlipped = !isFlipped;
+        setText("");
+        setBackground(Color.GRAY);
     }
 
     public boolean isMatched() {
