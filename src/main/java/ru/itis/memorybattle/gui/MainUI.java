@@ -10,57 +10,37 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MainUI extends JFrame {
-    private final int rows;
-    private final int cols;
     private final JPanel boardPanel;
-    private final Client client;
     private CardButton firstSelected = null;
     private final Map<String, CardButton> cardButtons = new HashMap<>();
-    private boolean isPlayerTurn = false; // Флаг хода текущего игрока
+    private Client client;
+    private boolean isMyTurn = false;
 
-    public MainUI(Client client, int rows, int cols) {
-        this.client = client;
-        this.rows = rows;
-        this.cols = cols;
+    public MainUI() {
 
         setTitle("Memory Game");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
         boardPanel = new JPanel();
-        boardPanel.setLayout(new GridLayout(rows, cols));
-        add(boardPanel, BorderLayout.CENTER);
-
-        // Слушаем события от сервера
-        client.addGameListener(message -> {
-            if (message.startsWith("START_GAME")) {
-                initializeGameBoard();
-            } else if (message.startsWith("TURN")) {
-                String playerName = message.split(" ")[1];
-                isPlayerTurn = playerName.equals(client.getName());
-                if (isPlayerTurn) {
-                    JOptionPane.showMessageDialog(this, "Ваш ход!");
-                } else {
-                    JOptionPane.showMessageDialog(this, "Ход другого игрока.");
-                }
-            } else if (message.startsWith("MATCH")) {
-                // Отобразить совпавшие карты
-                handleMatch(message);
-            } else if (message.startsWith("NO_MATCH")) {
-                // Отобразить, что карты не совпали
-                handleNoMatch(message);
-            } else if (message.startsWith("END_GAME")) {
-                // Обработать конец игры
-                handleEndGame(message);
-            }
-        });
 
         pack();
         setVisible(true);
     }
 
+    public void showTurn() {
+        JOptionPane.showMessageDialog(this, "Ваш ход!");
+    }
+
+    public void showNoTurn() {
+        JOptionPane.showMessageDialog(this, "Ceйчас ход другого игрока.");
+    }
+
     // Инициализация доски
-    private void initializeGameBoard() {
+    public void initializeGameBoard(int rows, int cols) {
+        boardPanel.setLayout(new GridLayout(rows, cols));
+        add(boardPanel, BorderLayout.CENTER);
+
         boardPanel.removeAll();
         cardButtons.clear();
 
@@ -79,8 +59,9 @@ public class MainUI extends JFrame {
 
     // Обработка клика на карточку
     private void handleCardClick(ActionEvent e) {
-        if (!isPlayerTurn) {
-            return; // Если не наш ход, не можем сделать движение
+        if (!isMyTurn) {
+            showNoTurn();
+            return;
         }
 
         CardButton clickedButton = (CardButton) e.getSource();
@@ -98,12 +79,7 @@ public class MainUI extends JFrame {
     }
 
     // Обработка совпадения карт
-    private void handleMatch(String message) {
-        String[] parts = message.split(" ");
-        int x1 = Integer.parseInt(parts[1]);
-        int y1 = Integer.parseInt(parts[2]);
-        int x2 = Integer.parseInt(parts[3]);
-        int y2 = Integer.parseInt(parts[4]);
+    public void handleMatch(int x1, int y1, int x2, int y2) {
 
         SwingUtilities.invokeLater(() -> {
             CardButton card1 = cardButtons.get(x1 + "-" + y1);
@@ -118,12 +94,7 @@ public class MainUI extends JFrame {
     }
 
     // Обработка несоответствия карт
-    private void handleNoMatch(String message) {
-        String[] parts = message.split(" ");
-        int x1 = Integer.parseInt(parts[1]);
-        int y1 = Integer.parseInt(parts[2]);
-        int x2 = Integer.parseInt(parts[3]);
-        int y2 = Integer.parseInt(parts[4]);
+    public void handleNoMatch(int x1, int y1, int x2, int y2) {
 
         SwingUtilities.invokeLater(() -> {
             CardButton card1 = cardButtons.get(x1 + "-" + y1);
@@ -136,15 +107,18 @@ public class MainUI extends JFrame {
     }
 
     // Обработка окончания игры
-    private void handleEndGame(String message) {
-        String[] parts = message.split(" ");
-        String result = "Игра окончена! Результаты: ";
-
-        for (int i = 1; i < parts.length; i++) {
-            result += parts[i] + " ";
-        }
+    public void handleEndGame(String results) {
+        String result = "Игра окончена! Результаты: " + results;
 
         JOptionPane.showMessageDialog(this, result);
         System.exit(0);
+    }
+
+    public void setClient(Client client) {
+        this.client = client;
+    }
+
+    public void setMyTurn(boolean isMyTurn) {
+        this.isMyTurn = isMyTurn;
     }
 }

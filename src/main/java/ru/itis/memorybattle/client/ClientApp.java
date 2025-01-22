@@ -23,14 +23,10 @@ public class ClientApp {
         int serverPort = configUI.getPort();
         String name = configUI.getName();
 
-        // Создаем клиента с заданными параметрами
-        Client client = new Client(serverIP, serverPort, name);
+        MainUI mainUI = new MainUI();
+
+        Client client = new Client(serverIP, serverPort, mainUI, name);
         client.connect();
 
-        if (client.isConnected()) {
-            new MainUI(client, ROWS, COLS);
-        } else {
-            System.out.println("Unable to start the game. Server is unavailable.");
-        }
     }
 }
