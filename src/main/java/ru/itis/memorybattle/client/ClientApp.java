@@ -1,17 +1,30 @@
 package ru.itis.memorybattle.client;
 
 import ru.itis.memorybattle.gui.MainUI;
-import ru.itis.memorybattle.service.CardService;
+import ru.itis.memorybattle.gui.ConfigUI;
+
 
 public class ClientApp {
     public static void main(String[] args) {
-        Client client = new Client("127.0.0.1", 12345);
-        client.connect();
-        CardService cardService = new CardService();
-        if (client.isConnected()) {
-            new MainUI(client, 4, 4, cardService);
-        } else {
-            System.out.println("Unable to start the game. Server is unavailable.");
+        ConfigUI configUI = new ConfigUI();
+
+        // Ожидаем, пока пользователь введет данные
+        while (configUI.isVisible()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
+
+        String serverIP = configUI.getIp();
+        int serverPort = configUI.getPort();
+        String name = configUI.getName();
+
+        MainUI mainUI = new MainUI();
+
+        Client client = new Client(serverIP, serverPort, mainUI, name);
+        client.connect();
+
     }
 }

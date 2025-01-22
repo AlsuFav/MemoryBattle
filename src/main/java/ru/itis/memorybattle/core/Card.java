@@ -3,10 +3,10 @@ package ru.itis.memorybattle.core;
 import java.util.Objects;
 
 public class Card {
-    private final int id; // Идентификатор карточки
+    private final int id; // Идентификатор пары карточки
     private boolean isMatched; // Флаг, найдена ли пара
     private boolean isRevealed; // Флаг, открыта ли карточка
-    private final int uniqueCardId; // Идентификатор уникальной карты (если NORMAL)
+    private final int uniqueCardId;
     private final CardType type; // Тип карты
     private final String imagePath; // Путь до изображения карты
 
@@ -21,6 +21,10 @@ public class Card {
 
     public int getId() {
         return id;
+    }
+
+    public int getUniqueCardId() {
+        return uniqueCardId;
     }
 
     public boolean isMatched() {
@@ -39,10 +43,6 @@ public class Card {
         isRevealed = revealed;
     }
 
-    public Integer getUniqueCardId() {
-        return uniqueCardId;
-    }
-
     public CardType getType() {
         return type;
     }
@@ -50,6 +50,20 @@ public class Card {
     public String getImagePath() {
         return imagePath;
     }
+
+    @Override
+    public String toString() {
+        return isRevealed ? String.valueOf(id) : "X"; // Показать ID, если карточка открыта
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Card card = (Card) o;
+        return id == card.id;
+    }
+
     public boolean isSimilar(Object o) {
         if (this == o) return false;
         if (o == null || getClass() != o.getClass()) return false;
@@ -58,29 +72,8 @@ public class Card {
     }
 
     @Override
-    public String toString() {
-        return "Card{" +
-                "id=" + id +
-                ", isMatched=" + isMatched +
-                ", isRevealed=" + isRevealed +
-                ", uniqueCardId=" + uniqueCardId +
-                ", type=" + type +
-                ", imagePath='" + imagePath + '\'' +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Card card = (Card) o;
-        return id == card.id &&
-                Objects.equals(uniqueCardId, card.uniqueCardId) &&
-                type == card.type;
-    }
-
-    @Override
     public int hashCode() {
-        return Objects.hash(id, uniqueCardId, type);
+        return Objects.hashCode(id);
     }
 }
+

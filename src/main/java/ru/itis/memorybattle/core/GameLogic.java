@@ -1,6 +1,6 @@
 package ru.itis.memorybattle.core;
 
-import ru.itis.memorybattle.repository.CardDaoImpl;
+import ru.itis.memorybattle.exceptions.DbException;
 import ru.itis.memorybattle.service.CardService;
 
 import java.sql.SQLException;
@@ -13,34 +13,35 @@ public class GameLogic {
     private final Map<String, Integer> scores;
     private int currentPlayerIndex;
     private boolean isGameOver;
-    private final CardService cardService;
+    private CardService cardService;
 
-    public GameLogic(int rows, int cols, CardService cardService) throws SQLException {
+    public GameLogic(int rows, int cols, CardService cardService) {
         this.rows = rows;
         this.cols = cols;
-        this.cardService = cardService;
         this.board = new Card[rows][cols];
         this.scores = new HashMap<>();
         this.currentPlayerIndex = 0;
         this.isGameOver = false;
+        this.cardService = cardService;
+
         initializeBoard();
     }
 
-    private void initializeBoard() throws SQLException {
-        List<Card> cards = cardService.getAllCards();
+    private void initializeBoard() {
+        List<Card> cards;
+        try {
+            cards = cardService.getAllCards();
+        } catch (SQLException e) {
+            throw new DbException();
+        }
         // Перемешиваем карты
 //        Collections.shuffle(cards);
 
-        if (!cards.isEmpty()) {
-            Iterator<Card> iterator = cards.iterator();
-            for (int i = 0; i < rows; i++) {
-                for (int j = 0; j < cols; j++) {
-                    board[i][j] = iterator.next();
-                }
+        Iterator<Card> iterator = cards.iterator();
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                board[i][j] = iterator.next();
             }
-        } else {
-            // Обработка случая пустой коллекции
-            System.out.println("Коллекция карточек пуста!");
         }
     }
 
@@ -97,5 +98,13 @@ public class GameLogic {
 
     public Card getCard(int row, int col) {
         return board[row][col];
+    }
+
+    public int getRows() {
+        return rows;
+    }
+
+    public int getCols() {
+        return cols;
     }
 }

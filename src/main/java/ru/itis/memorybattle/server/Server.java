@@ -1,135 +1,211 @@
 package ru.itis.memorybattle.server;
 
+import ru.itis.memorybattle.core.Card;
 import ru.itis.memorybattle.core.GameLogic;
-import ru.itis.memorybattle.repository.CardDaoImpl;
-import ru.itis.memorybattle.service.CardService;
+import ru.itis.memorybattle.exceptions.MessageReadException;
+import ru.itis.memorybattle.exceptions.MessageWriteException;
+import ru.itis.memorybattle.exceptions.ServerException;
+import ru.itis.memorybattle.model.Message;
+import ru.itis.memorybattle.protocol.Protocol;
+import ru.itis.memorybattle.utils.GameMessageProvider;
+import ru.itis.memorybattle.utils.LogMessages;
 
 import java.io.*;
 import java.net.*;
-import java.sql.SQLException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static ru.itis.memorybattle.utils.MessageType.*;
+
 public class Server {
-    private static final int PORT = 12345;
-    private static final int ROWS = 4;
-    private static final int COLS = 4;
+    private final int port;
 
-    private final List<ClientHandler> players = new ArrayList<>();
-    CardService cardService = new CardService();
-    private final GameLogic gameLogic = new GameLogic(ROWS, COLS, cardService); // Логика игры
-    private final Map<String, Integer> scores = new HashMap<>();
+    private final List<ClientHandler> clients;
+    private final GameLogic gameLogic; // Логика игры
+    private final Map<Integer, Integer> scores;
 
-    public Server() throws SQLException {
+    public Server(int port, GameLogic gameLogic) {
+        this.port = port;
+        this.clients = new ArrayList<>();
+        this.gameLogic = gameLogic;
+        this.scores = new HashMap<>();
     }
 
     public void start() throws IOException {
         System.out.println("Сервер запущен. Ожидание игроков...");
-        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            while (players.size() < 2) {
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            while (clients.size() < 2) {
                 Socket socket = serverSocket.accept();
-                ClientHandler player = new ClientHandler(socket);
-                players.add(player);
-                scores.put(player.getName(), 0);
+                InputStream input = socket.getInputStream();
+                OutputStream output = socket.getOutputStream();
+
+                ClientHandler player = new ClientHandler(socket, input, output);
+
+                clients.add(player);
+
+                scores.put(player.getId(), 0);
+
                 new Thread(player).start();
-                System.out.println("Игрок подключён: " + player.getName());
+
+                System.out.println("Игрок подключён...");
             }
 
             System.out.println("Оба игрока подключены. Игра начинается!");
-            sendToAll("START_GAME " + ROWS + "x" + COLS);
+
+            sendStartGame();
+
             sendTurn();
+            sendNoTurn();
         }
+    }
+
+    private void sendStartGame() {
+        Message message = GameMessageProvider.createMessage(START_GAME, STR."\{gameLogic.getRows()} \{gameLogic.getCols()}".getBytes());
+        sendToAll(message);
     }
 
     private void sendTurn() {
-        String currentPlayer = players.get(gameLogic.getCurrentPlayerIndex()).getName();
-        sendToAll("TURN " + currentPlayer);
+        ClientHandler currentPlayer = clients.get(gameLogic.getCurrentPlayerIndex());
+        sendMessage(currentPlayer.getId(), GameMessageProvider.createMessage(TURN, "".getBytes()));
     }
 
-    private void sendToAll(String message) {
-        for (ClientHandler player : players) {
-            player.sendMessage(message);
+    private void sendNoTurn() {
+        ClientHandler notCurrentPlayer = clients.get((gameLogic.getCurrentPlayerIndex() + 1) % 2);
+        sendMessage(notCurrentPlayer.getId(), GameMessageProvider.createMessage(NOT_YOUR_TURN, "".getBytes()));
+    }
+
+    public void sendMessage(int connectionId, Message message) {
+        ClientHandler client = clients.get(connectionId);
+        try {
+            Protocol.writeMessage(client.getOutput(), message);
+        } catch (MessageWriteException e) {
+            client.stop();
         }
     }
 
-    private synchronized void handleMove(ClientHandler player, int x1, int y1, int x2, int y2) {
-        if (gameLogic.getCurrentPlayerIndex() != players.indexOf(player)) {
-            player.sendMessage("NOT_YOUR_TURN");
-            return;
+    private void sendToAll(Message message) {
+        for (ClientHandler client : clients) {
+            sendMessage(client.getId(), message);
         }
+    }
 
-        System.out.println(x1 + " " + y1 + " " + x2 + " " + y2);
+    private synchronized void handleCardOpenRequest (int x, int y) {
+        Card card = gameLogic.getCard(x, y);
+
+        Message message = GameMessageProvider.createMessage(OPEN_CARDS_RESPONSE, (x + " " + y + " " + card.getImagePath()).getBytes());
+        sendToAll(message);
+    }
+
+    private synchronized void handleMove(int x1, int y1, int x2, int y2) {
 
         boolean match = gameLogic.makeMove(x1, y1, x2, y2);
 
         if (match) {
-            sendToAll("MATCH " + x1 + " " + y1 + " " + x2 + " " + y2);
+            scores.put(gameLogic.getCurrentPlayerIndex(), scores.get(gameLogic.getCurrentPlayerIndex()) + 1);
+
+            Message message = GameMessageProvider.createMessage(MATCH, (STR."\{x1} \{y1} \{x2} \{y2}").getBytes());
+            sendToAll(message);
+
             if (gameLogic.isGameOver()) {
                 endGame();
             } else {
-                // Игрок продолжает, не переключаем ход
                 sendTurn();
+                sendNoTurn();
             }
+
         } else {
-            sendToAll("NO_MATCH " + x1 + " " + y1 + " " + x2 + " " + y2);
+            Message message = GameMessageProvider.createMessage(NO_MATCH, (STR."\{x1} \{y1} \{x2} \{y2}").getBytes());
+            sendToAll(message);
+
             gameLogic.switchPlayer(); // Передаем ход другому игроку
             sendTurn();
+            sendNoTurn();
         }
     }
 
     private void endGame() {
-        StringBuilder result = new StringBuilder("END_GAME");
+
+        StringBuilder result = new StringBuilder();
         for (Map.Entry<String, Integer> entry : gameLogic.getScores().entrySet()) {
             result.append(" ").append(entry.getKey()).append(":").append(entry.getValue());
         }
-        sendToAll(result.toString());
+
+        Message message = GameMessageProvider.createMessage(END_GAME, result.toString().getBytes());
+        sendToAll(message);
     }
+
 
     private class ClientHandler implements Runnable {
         private final Socket socket;
-        private final PrintWriter out;
-        private final BufferedReader in;
-        private final String name;
+        private final InputStream input;
+        private final OutputStream output;
+        private final int id;
 
-        public ClientHandler(Socket socket) throws IOException {
+        private boolean alive = false;
+        private String name;
+
+        public ClientHandler(Socket socket, InputStream input, OutputStream output) throws IOException {
             this.socket = socket;
-            this.out = new PrintWriter(socket.getOutputStream(), true);
-            this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            this.input = input;
+            this.output = output;
+            id = clients.size();
+            alive = true;
+        }
 
-            out.println("ENTER_NAME");
-            this.name = in.readLine();
+        @Override
+        public void run() {
+            try {
+                while (alive) {
+                    Message message = Protocol.readMessage(input);;
+                    if (message != null) {
+                        int type = message.getType();
+                        if (type == PLAYER_MOVE) {
+                            String[] parts = new String(message.getData(), StandardCharsets.UTF_8).split(" ");
+                            int x1 = Integer.parseInt(parts[0]);
+                            int y1 = Integer.parseInt(parts[1]);
+                            int x2 = Integer.parseInt(parts[2]);
+                            int y2 = Integer.parseInt(parts[3]);
+                            handleMove(x1, y1, x2, y2);
+                        } else if (type == SEND_NAME) {
+                            this.name = new String(message.getData(), StandardCharsets.UTF_8);
+                        } else if (type == OPEN_CARD_REQUEST) {
+                            String[] parts = new String(message.getData(), StandardCharsets.UTF_8).split(" ");
+                            int x = Integer.parseInt(parts[0]);
+                            int y = Integer.parseInt(parts[1]);
+                            handleCardOpenRequest(x, y);
+                        }
+                    }
+                }
+            } catch (MessageReadException e) {
+                throw new ServerException(LogMessages.READ_SERVER_EXCEPTION, e);
+            }
+        }
+
+        public void stop() {
+            try {
+                input.close();
+                output.close();
+                socket.close();
+                clients.remove(this);
+            } catch (IOException e) {
+                throw new ServerException(LogMessages.LOST_CONNECTION_SERVER_EXCEPTIONS, e);
+            }
+        }
+
+        public OutputStream getOutput() {
+            return output;
+        }
+
+        public InputStream getInput() {
+            return input;
         }
 
         public String getName() {
             return name;
         }
 
-        public void sendMessage(String message) {
-            out.println(message);
-        }
-
-        @Override
-        public void run() {
-            try {
-                String input;
-                while ((input = in.readLine()) != null) {
-                    if (input.startsWith("PLAYER_MOVE")) {
-                        String[] parts = input.split(" ");
-                        int x1 = Integer.parseInt(parts[1]);
-                        int y1 = Integer.parseInt(parts[2]);
-                        int x2 = Integer.parseInt(parts[3]);
-                        int y2 = Integer.parseInt(parts[4]);
-                        handleMove(this, x1, y1, x2, y2);
-                    }
-                }
-            } catch (IOException e) {
-                System.out.println("Игрок отключился: " + name);
-            } finally {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+        public int getId() {
+            return id;
         }
     }
 }
