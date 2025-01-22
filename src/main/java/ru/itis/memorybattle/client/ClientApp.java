@@ -3,8 +3,6 @@ package ru.itis.memorybattle.client;
 import ru.itis.memorybattle.gui.MainUI;
 import ru.itis.memorybattle.gui.ConfigUI;
 
-import static ru.itis.memorybattle.utils.GameSettings.COLS;
-import static ru.itis.memorybattle.utils.GameSettings.ROWS;
 
 public class ClientApp {
     public static void main(String[] args) {
