@@ -19,17 +19,18 @@ import java.net.*;
 public class Client extends Component {
     private final String serverAddress;
     private final int port;
+    private final String name;
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
     private boolean connected;
-    private String name;
     private GameListener gameListener;
 
 
-    public Client(String serverAddress, int port) {
+    public Client(String serverAddress, int port, String name) {
         this.serverAddress = serverAddress;
         this.port = port;
+        this.name = name;
         this.connected = false;
     }
 
@@ -39,9 +40,6 @@ public class Client extends Component {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
 
-            // Получение имени клиента
-            System.out.print("Введите имя игрока: ");
-            name = new BufferedReader(new InputStreamReader(System.in)).readLine();
             out.println(name);
 
             connected = true;
@@ -54,6 +52,12 @@ public class Client extends Component {
     public void sendMove(int x1, int y1, int x2, int y2) {
         if (connected) {
             out.println("PLAYER_MOVE " + x1 + " " + y1 + " " + x2 + " " + y2);
+        }
+    }
+
+    public void sendMessage(String message) {
+        if (connected) {
+            out.println(message);
         }
     }
 

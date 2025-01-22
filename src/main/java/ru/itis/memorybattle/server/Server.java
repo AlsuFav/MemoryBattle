@@ -6,10 +6,11 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import static ru.itis.memorybattle.utils.GameSettings.COLS;
+import static ru.itis.memorybattle.utils.GameSettings.ROWS;
+
 public class Server {
     private static final int PORT = 12345;
-    private static final int ROWS = 4;
-    private static final int COLS = 4;
 
     private final List<ClientHandler> players = new ArrayList<>();
     private final GameLogic gameLogic = new GameLogic(ROWS, COLS); // Логика игры
@@ -87,8 +88,6 @@ public class Server {
             this.socket = socket;
             this.out = new PrintWriter(socket.getOutputStream(), true);
             this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-            out.println("ENTER_NAME");
             this.name = in.readLine();
         }
 
