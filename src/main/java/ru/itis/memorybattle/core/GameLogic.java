@@ -1,5 +1,9 @@
 package ru.itis.memorybattle.core;
 
+import ru.itis.memorybattle.repository.CardDaoImpl;
+import ru.itis.memorybattle.service.CardService;
+
+import java.sql.SQLException;
 import java.util.*;
 
 public class GameLogic {
@@ -9,10 +13,12 @@ public class GameLogic {
     private final Map<String, Integer> scores;
     private int currentPlayerIndex;
     private boolean isGameOver;
+    private final CardService cardService;
 
-    public GameLogic(int rows, int cols) {
+    public GameLogic(int rows, int cols, CardService cardService) throws SQLException {
         this.rows = rows;
         this.cols = cols;
+        this.cardService = cardService;
         this.board = new Card[rows][cols];
         this.scores = new HashMap<>();
         this.currentPlayerIndex = 0;
@@ -20,20 +26,21 @@ public class GameLogic {
         initializeBoard();
     }
 
-    private void initializeBoard() {
-        int totalСards = (rows * cols);
-        ArrayList<Integer> ids = new ArrayList<>();
+    private void initializeBoard() throws SQLException {
+        List<Card> cards = cardService.getAllCards();
+        // Перемешиваем карты
+//        Collections.shuffle(cards);
 
-        for (int i = 0; i < totalСards; i++) {
-            ids.add(i);
-        }
-
-        Iterator<Integer> iterator = ids.iterator();
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                int id = iterator.next();
-                board[i][j] = new Card(id, id / 2);
+        if (!cards.isEmpty()) {
+            Iterator<Card> iterator = cards.iterator();
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < cols; j++) {
+                    board[i][j] = iterator.next();
+                }
             }
+        } else {
+            // Обработка случая пустой коллекции
+            System.out.println("Коллекция карточек пуста!");
         }
     }
 

@@ -1,9 +1,12 @@
 package ru.itis.memorybattle.server;
 
 import ru.itis.memorybattle.core.GameLogic;
+import ru.itis.memorybattle.repository.CardDaoImpl;
+import ru.itis.memorybattle.service.CardService;
 
 import java.io.*;
 import java.net.*;
+import java.sql.SQLException;
 import java.util.*;
 
 public class Server {
@@ -12,8 +15,12 @@ public class Server {
     private static final int COLS = 4;
 
     private final List<ClientHandler> players = new ArrayList<>();
-    private final GameLogic gameLogic = new GameLogic(ROWS, COLS); // Логика игры
+    CardService cardService = new CardService();
+    private final GameLogic gameLogic = new GameLogic(ROWS, COLS, cardService); // Логика игры
     private final Map<String, Integer> scores = new HashMap<>();
+
+    public Server() throws SQLException {
+    }
 
     public void start() throws IOException {
         System.out.println("Сервер запущен. Ожидание игроков...");
