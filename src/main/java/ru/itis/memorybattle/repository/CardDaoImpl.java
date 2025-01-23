@@ -2,6 +2,7 @@ package ru.itis.memorybattle.repository;
 
 import ru.itis.memorybattle.core.Card;
 import ru.itis.memorybattle.core.CardType;
+import ru.itis.memorybattle.utils.ConnectionProvider;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
