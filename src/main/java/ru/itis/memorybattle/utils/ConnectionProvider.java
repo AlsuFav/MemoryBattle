@@ -10,9 +10,9 @@ import java.sql.SQLException;
 public class ConnectionProvider {
     private static HikariDataSource dataSource;
     private static ConnectionProvider instance;
-    private static final String url = "jdbc:postgresql://localhost:5432/example_db";
+    private static final String url = "jdbc:postgresql://localhost:5432/memory_battle";
     private static final String username = "postgres";
-    private static final String password = "qwerty123";
+    private static final String password = "Garral7112386";
 
     private ConnectionProvider() {
         try {
