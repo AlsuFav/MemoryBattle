@@ -1,7 +1,6 @@
 package ru.itis.memorybattle.gui;
 
 import ru.itis.memorybattle.client.Client;
-import ru.itis.memorybattle.gui.components.CardButton;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,6 +11,7 @@ import java.util.Map;
 public class MainUI extends JFrame {
     private final JPanel boardPanel;
     private CardButton firstSelected = null;
+    private CardButton secondSelected = null;
     private final Map<String, CardButton> cardButtons = new HashMap<>();
     private Client client;
     private boolean isMyTurn = false;
@@ -33,8 +33,17 @@ public class MainUI extends JFrame {
     }
 
     public void showNoTurn() {
-        JOptionPane.showMessageDialog(this, "Ceйчас ход другого игрока.");
+        JOptionPane.showMessageDialog(this, "Сейчас ход другого игрока.");
     }
+
+    public void showExtraTurn() {
+        JOptionPane.showMessageDialog(this, "Ваш дополнительный ход!");
+    }
+
+    public void showNoExtraTurn() {
+        JOptionPane.showMessageDialog(this, "Сейчас дополнительный ход другого игрока.");
+    }
+
 
     // Инициализация доски
     public void initializeGameBoard(int rows, int cols) {
@@ -71,19 +80,43 @@ public class MainUI extends JFrame {
 
             client.sendCardOpenRequest(firstSelected.getRow(), firstSelected.getCol());
 
-        } else {
-            if (firstSelected.equals(clickedButton)) return; // Если это та же кнопка
+        } else if (secondSelected == null) {
+            secondSelected = clickedButton;
 
-            client.sendCardOpenRequest(clickedButton.getRow(), clickedButton.getCol());
+            if (firstSelected.equals(secondSelected)) return; // Если это та же кнопка
 
-            client.sendMove(firstSelected.getRow(), firstSelected.getCol(), clickedButton.getRow(), clickedButton.getCol());
+            client.sendCardOpenRequest(secondSelected.getRow(), secondSelected.getCol());
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            client.sendMove(firstSelected.getRow(), firstSelected.getCol(), secondSelected.getRow(), secondSelected.getCol());
+
             firstSelected = null; // Сбросить после хода
+            secondSelected = null;
         }
     }
 
     public void handleCardOpen(int x, int y, String source) {
         CardButton button = cardButtons.get(x + "-" + y);
         button.open(source);
+    }
+
+    public void handleSpecialCardOpen(int x, int y, String source) {
+        CardButton card = cardButtons.get(x + "-" + y);
+        card.open(source);
+
+        card.setMatched(true);
+        card.setEnabled(false);
+    }
+
+    public void handleSpecialCardOpen() {
+        if (secondSelected != null) {
+            secondSelected = null;
+        } else firstSelected = null;
     }
 
     public void handleCardClose(int x, int y) {

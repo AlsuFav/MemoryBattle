@@ -48,7 +48,7 @@ public class Client extends Component {
             this.clientThread = new ClientThread(socket, input, output);
             new Thread(clientThread).start();
 
-            sendName(name);
+            initializePlayer(name);
 
             System.out.println("Подключен к серверу: " + serverAddress + ":" + port);
         } catch (IOException e) {
@@ -56,8 +56,8 @@ public class Client extends Component {
         }
     }
 
-    public void sendName(String name) {
-        Message message = GameMessageProvider.createMessage(SEND_NAME, name.getBytes());
+    public void initializePlayer(String name) {
+        Message message = GameMessageProvider.createMessage(INITIALIZE_PLAYER, name.getBytes());
         sendMessage(message);
     }
 
@@ -117,6 +117,12 @@ public class Client extends Component {
                         } else if (type == NOT_YOUR_TURN) {
                             mainUI.setMyTurn(false);
                             mainUI.showNoTurn();
+                        } else if (type == EXTRA_TURN) {
+                            mainUI.setMyTurn(true);
+                            mainUI.showExtraTurn();
+                        } else if (type == NOT_YOUR_EXTRA_TURN) {
+                            mainUI.setMyTurn(false);
+                            mainUI.showNoExtraTurn();
                         } else if (type == MATCH) {
                             String[] parts = new String(message.getData(), StandardCharsets.UTF_8).split(" ");
                             int x1 = Integer.parseInt(parts[0]);
@@ -140,14 +146,23 @@ public class Client extends Component {
                             }
 
                             mainUI.handleEndGame(result.toString());
-                        } else if (type == OPEN_CARDS_RESPONSE) {
+                        } else if (type == OPEN_CARD_RESPONSE) {
                             String[] parts = new String(message.getData(), StandardCharsets.UTF_8).split(" ");
                             int x = Integer.parseInt(parts[0]);
                             int y = Integer.parseInt(parts[1]);
                             String source = parts[2];
 
-
                             mainUI.handleCardOpen(x, y, source);
+                        } else if (type == OPEN_SPECIAL_CARD) {
+                            String[] parts = new String(message.getData(), StandardCharsets.UTF_8).split(" ");
+                            int x = Integer.parseInt(parts[0]);
+                            int y = Integer.parseInt(parts[1]);
+                            String source = parts[2];
+
+                            mainUI.handleSpecialCardOpen(x, y, source);
+                        } else if (type == SPECIAL_CARD_EXTRA_TURN) {
+
+                            mainUI.handleSpecialCardOpen();
                         }
                     }
                 }
