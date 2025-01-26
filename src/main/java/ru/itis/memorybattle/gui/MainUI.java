@@ -1,7 +1,6 @@
 package ru.itis.memorybattle.gui;
 
 import ru.itis.memorybattle.client.Client;
-import ru.itis.memorybattle.gui.components.CardButton;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,128 +9,194 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MainUI extends JFrame {
-    private final int rows;
-    private final int cols;
     private final JPanel boardPanel;
-    private final Client client;
-    private CardButton firstSelected = null;
-    private final Map<String, CardButton> cardButtons = new HashMap<>();
-    private boolean isPlayerTurn = false; // Флаг хода текущего игрока
+    private CardButton firstSelected;
+    private CardButton secondSelected;
+    private final Map<String, CardButton> cardButtons;
+    private Client client;
+    private boolean isMyTurn;
+    private final Map<String, Integer> scores;
 
-    public MainUI(Client client, int rows, int cols) {
-        this.client = client;
-        this.rows = rows;
-        this.cols = cols;
-        this.boardPanel = new JPanel(new GridLayout(rows, cols));
+    public MainUI() {
+        firstSelected = null;
+        secondSelected = null;
+        cardButtons = new HashMap<>();
+        isMyTurn = false;
+        scores = new HashMap<>();
 
-        initUI();
-        initServerListener();
-    }
+        setTitle("Memory Game");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
 
-    private void initUI() {
-        setTitle("Memory Battle Online");
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(800, 800);
+        boardPanel = new JPanel();
 
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                CardButton button = new CardButton(i, j, this::onCardClick);
-                button.setEnabled(false); // Кнопки изначально отключены
-                boardPanel.add(button);
-                cardButtons.put(i + "-" + j, button);
-            }
-        }
-
-        add(boardPanel, BorderLayout.CENTER);
+        pack();
         setVisible(true);
     }
 
-    private void initServerListener() {
-        client.listen(response -> SwingUtilities.invokeLater(() -> handleServerResponse(response)));
+
+    public void showTurn() {
+        JOptionPane.showMessageDialog(this, "Ваш ход!");
     }
 
-    private void handleServerResponse(String response) {
-        if (response.startsWith("START_GAME")) {
-            enableBoard(true);
-        } else if (response.startsWith("MATCH")) {
-            handleMatch(response);
-        } else if (response.startsWith("NO_MATCH")) {
-            handleNoMatch(response);
-        } else if (response.startsWith("END_GAME")) {
-            handleEndGame(response);
-        } else if (response.startsWith("TURN")) {
-            handleTurn(response);
-        } else if (response.startsWith("NOT_YOUR_TURN")) {
-            JOptionPane.showMessageDialog(this, "Сейчас не ваш ход!");
-        } else if (response.startsWith("INVALID_MOVE")) {
-            JOptionPane.showMessageDialog(this, "Неверный ход, попробуйте снова.");
+    public void showNoTurn() {
+        JOptionPane.showMessageDialog(this, "Сейчас ход другого игрока.");
+    }
+
+    public void showExtraTurn() {
+        JOptionPane.showMessageDialog(this, "Ваш дополнительный ход!");
+    }
+
+    public void showNoExtraTurn() {
+        JOptionPane.showMessageDialog(this, "Сейчас дополнительный ход другого игрока.");
+    }
+
+    public void showSpecialCardExtraTurnOpen() {
+        JOptionPane.showMessageDialog(this, "У вас теперь есть дополнительный ход!");
+    }
+
+    public void showSpecialCardShuffleOpen() {
+        JOptionPane.showMessageDialog(this, "Все закрытые карты перемешаны!");
+    }
+
+
+    public void initializeGameBoard(int rows, int cols) {
+        boardPanel.setLayout(new GridLayout(rows, cols));
+        add(boardPanel, BorderLayout.CENTER);
+
+        boardPanel.removeAll();
+        cardButtons.clear();
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                CardButton button = new CardButton(i, j);
+                button.addActionListener(this::handleCardClick);
+                cardButtons.put(i + "-" + j, button);
+                boardPanel.add(button);
+            }
         }
+
+        boardPanel.revalidate();
+        boardPanel.repaint();
     }
 
-    private void handleTurn(String response) {
-        String[] parts = response.split(" ");
-        String currentPlayer = parts[1];
-        isPlayerTurn = client.getName().equals(currentPlayer); // Проверяем, текущий ли это игрок
-        JOptionPane.showMessageDialog(this, "Сейчас ход игрока: " + currentPlayer);
 
-        // Включаем или отключаем кнопки в зависимости от очередности хода
-        enableBoard(isPlayerTurn);
-    }
-
-    private void handleMatch(String response) {
-        String[] parts = response.split(" ");
-        int x1 = Integer.parseInt(parts[1]);
-        int y1 = Integer.parseInt(parts[2]);
-        int x2 = Integer.parseInt(parts[3]);
-        int y2 = Integer.parseInt(parts[4]);
-
-        cardButtons.get(x1 + "-" + y1).setText("✓");
-        cardButtons.get(x2 + "-" + y2).setText("✓");
-        cardButtons.get(x1 + "-" + y1).setEnabled(false);
-        cardButtons.get(x2 + "-" + y2).setEnabled(false);
-    }
-
-    private void handleNoMatch(String response) {
-        String[] parts = response.split(" ");
-        int x1 = Integer.parseInt(parts[1]);
-        int y1 = Integer.parseInt(parts[2]);
-        int x2 = Integer.parseInt(parts[3]);
-        int y2 = Integer.parseInt(parts[4]);
-
-        // Закрываем карточки
-        cardButtons.get(x1 + "-" + y1).setText("");
-        cardButtons.get(x2 + "-" + y2).setText("");
-        cardButtons.get(x1 + "-" + y1).setEnabled(true);
-        cardButtons.get(x2 + "-" + y2).setEnabled(true);
-    }
-
-    private void handleEndGame(String response) {
-        JOptionPane.showMessageDialog(this, "Игра окончена! Результаты: " + response);
-        enableBoard(false);
-    }
-
-    private void enableBoard(boolean enable) {
-        for (CardButton button : cardButtons.values()) {
-            button.setEnabled(enable);
-        }
-    }
-
-    private void onCardClick(ActionEvent e) {
-        if (!isPlayerTurn) {
-            JOptionPane.showMessageDialog(this, "Это не ваш ход!");
+    private void handleCardClick(ActionEvent e) {
+        if (!isMyTurn) {
+            showNoTurn();
             return;
         }
 
-        CardButton button = (CardButton) e.getSource();
-        button.setText("?");
+        CardButton clickedButton = (CardButton) e.getSource();
 
         if (firstSelected == null) {
-            firstSelected = button;
-            button.setEnabled(false); // Блокируем первую выбранную карту
-        } else {
-            button.setEnabled(false);
-            client.sendMove(firstSelected.getRow(), firstSelected.getCol(), button.getRow(), button.getCol());
-            firstSelected = null; // Сбрасываем выбор после второго клика
+            firstSelected = clickedButton;
+
+            client.sendCardOpenRequest(firstSelected.getRow(), firstSelected.getCol());
+
+        } else if (secondSelected == null) {
+            secondSelected = clickedButton;
+
+            if (firstSelected.equals(secondSelected)) return; // Если это та же кнопка
+
+            client.sendCardOpenRequest(secondSelected.getRow(), secondSelected.getCol());
+
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            if (secondSelected == null) return;
+
+            client.sendMove(firstSelected.getRow(), firstSelected.getCol(), secondSelected.getRow(), secondSelected.getCol());
+
+            firstSelected = null;
+            secondSelected = null;
         }
+    }
+
+
+    public void handleCardOpen(int x, int y, String source) {
+        CardButton button = cardButtons.get(x + "-" + y);
+        button.open(source);
+
+        if (secondSelected != null) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
+
+    public void handleSpecialCardOpen(int x, int y, String source) {
+        CardButton card = cardButtons.get(x + "-" + y);
+        card.open(source);
+
+        card.setMatched(true);
+        card.setEnabled(false);
+    }
+
+
+    public void handleSpecialCardOpen() {
+        if (secondSelected != null) {
+            secondSelected = null;
+        } else firstSelected = null;
+    }
+
+
+    public void handleCardClose(int x, int y) {
+        CardButton button = cardButtons.get(x + "-" + y);
+        button.close();
+    }
+
+
+    public void handleMatch(int x1, int y1, int x2, int y2) {
+
+        SwingUtilities.invokeLater(() -> {
+            CardButton card1 = cardButtons.get(x1 + "-" + y1);
+            CardButton card2 = cardButtons.get(x2 + "-" + y2);
+
+            card1.setMatched(true);
+            card2.setMatched(true);
+
+            card1.setEnabled(false);
+            card2.setEnabled(false);
+        });
+    }
+
+
+    public void handleNoMatch(int x1, int y1, int x2, int y2) {
+
+        SwingUtilities.invokeLater(() -> {
+            handleCardClose(x1, y1);
+            handleCardClose(x2, y2);
+        });
+    }
+
+
+    public void updateScores (String player1, int scores1, String player2, int scores2) {
+        scores.put(player1, scores1);
+        scores.put(player2, scores2);
+    }
+
+
+    public void handleEndGame(String winner) {
+        String result = "Игра окончена! Победитель: " + winner;
+
+        JOptionPane.showMessageDialog(this, result);
+        System.exit(0);
+    }
+
+
+    public void setClient(Client client) {
+        this.client = client;
+    }
+
+
+    public void setMyTurn(boolean isMyTurn) {
+        this.isMyTurn = isMyTurn;
     }
 }
