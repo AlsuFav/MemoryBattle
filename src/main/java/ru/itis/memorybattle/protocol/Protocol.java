@@ -14,10 +14,6 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class Protocol {
-    public static final String CONNECT = "CONNECT";
-    public static final String START_GAME = "START_GAME";
-    public static final String PLAYER_MOVE = "PLAYER_MOVE";
-    public static final String END_GAME = "END_GAME";
 
     public static final byte[] VERSION_BYTES = {0x0, 0x1};
     public static final int MAX_MESSAGE_LENGTH = 100 * 1024;

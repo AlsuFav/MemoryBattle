@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
+import static ru.itis.memorybattle.utils.GameSettings.IP;
 import static ru.itis.memorybattle.utils.GameSettings.PORT;
 
 public class ConfigUI extends JFrame {
@@ -22,7 +23,7 @@ public class ConfigUI extends JFrame {
         setLayout(new GridLayout(5, 2, 10, 10));
 
         add(new JLabel("IP:"));
-        ipField = new JTextField("127.0.0.1");
+        ipField = new JTextField(IP);
         add(ipField);
 
         add(new JLabel("Port:"));

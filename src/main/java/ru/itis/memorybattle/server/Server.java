@@ -64,8 +64,25 @@ public class Server {
         }
     }
 
+
+    public synchronized void sendMessage(int connectionId, Message message) {
+        ClientHandler client = clients.get(connectionId);
+        try {
+            Protocol.writeMessage(client.getOutput(), message);
+        } catch (MessageWriteException e) {
+            client.stop();
+        }
+    }
+
+    private synchronized void sendToAll(Message message) {
+        for (ClientHandler client : clients) {
+            sendMessage(client.getId(), message);
+        }
+    }
+
+
     private synchronized void sendStartGame() {
-        Message message = GameMessageProvider.createMessage(START_GAME, STR."\{gameLogic.getRows()} \{gameLogic.getCols()}".getBytes());
+        Message message = GameMessageProvider.createMessage(START_GAME,(gameLogic.getRows() + " " + gameLogic.getCols()).getBytes());
         sendToAll(message);
     }
 
@@ -89,32 +106,19 @@ public class Server {
         sendMessage(notCurrentPlayer.getId(), GameMessageProvider.createMessage(NOT_YOUR_EXTRA_TURN, "".getBytes()));
     }
 
+
     private void sendScores() {
         StringBuilder scores = new StringBuilder();
 
         for (Player player : gameLogic.getPlayers()) {
-            scores.append(player.getName() + " " + player.getScores() + " ");
+            scores.append(player.getName()).append(" ").append(player.getScores()).append(" ");
         }
 
-        Message message = GameMessageProvider.createMessage(SCORES, scores.toString().getBytes());
+        Message message = GameMessageProvider.createMessage(SCORES_UPDATE, scores.toString().getBytes());
 
         sendToAll(message);
     }
 
-    public void sendMessage(int connectionId, Message message) {
-        ClientHandler client = clients.get(connectionId);
-        try {
-            Protocol.writeMessage(client.getOutput(), message);
-        } catch (MessageWriteException e) {
-            client.stop();
-        }
-    }
-
-    private void sendToAll(Message message) {
-        for (ClientHandler client : clients) {
-            sendMessage(client.getId(), message);
-        }
-    }
 
     private synchronized void handleCardOpenRequest (int x, int y) {
         Card card = gameLogic.getCard(x, y);
@@ -140,6 +144,7 @@ public class Server {
         }
     }
 
+
     private synchronized void handleSpecialCardOpen(int x, int y) {
         Card card = gameLogic.getCard(x, y);
 
@@ -147,16 +152,16 @@ public class Server {
         sendToAll(message);
     }
 
-    private synchronized void handleMoveAfterSpecialCardOpen() {
 
+    private synchronized void handleMoveAfterSpecialCardOpen() {
         Message message = GameMessageProvider.createMessage(MOVE_AFTER_SPECIAL_CARD_OPEN, "".getBytes());
 
         ClientHandler currentPlayer = clients.get(gameLogic.getCurrentPlayer().getId());
         sendMessage(currentPlayer.getId(), message);
     }
 
-    private synchronized void handleSpecialCardExtraTurnOpen() {
 
+    private synchronized void handleSpecialCardExtraTurnOpen() {
         Message message = GameMessageProvider.createMessage(SPECIAL_CARD_EXTRA_TURN, "".getBytes());
 
         gameLogic.getCurrentPlayer().hasExtraTurn(true);
@@ -165,7 +170,6 @@ public class Server {
     }
 
     private synchronized void handleSpecialCardShuffleOpen() {
-
         Message message = GameMessageProvider.createMessage(SPECIAL_CARD_SHUFFLE, "".getBytes());
 
         gameLogic.shuffle();
@@ -176,29 +180,29 @@ public class Server {
 
     private synchronized void handlePlayerInitialization (int id, String name) {
         Player player = new Player(id, name);
-
         gameLogic.addPlayer(player);
     }
+
 
     private synchronized void handleMove(int x1, int y1, int x2, int y2) {
 
         boolean match = gameLogic.makeMove(x1, y1, x2, y2);
 
         if (match) {
-            Message message = GameMessageProvider.createMessage(MATCH, (STR."\{x1} \{y1} \{x2} \{y2}").getBytes());
+            Message message = GameMessageProvider.createMessage(MATCH, (x1 + " " + y1 + " " + x2 + " " + y2).getBytes());
             sendToAll(message);
 
             sendScores();
 
             if (gameLogic.isGameOver()) {
-                endGame();
+                handleEndGame();
             } else {
                 sendTurn();
                 sendNoTurn();
             }
 
         } else {
-            Message message = GameMessageProvider.createMessage(NO_MATCH, (STR."\{x1} \{y1} \{x2} \{y2}").getBytes());
+            Message message = GameMessageProvider.createMessage(NO_MATCH, (x1 + " " + y1 + " " + x2 + " " + y2).getBytes());
             sendToAll(message);
 
             if (gameLogic.getCurrentPlayer().hasExtraTurn()) {
@@ -214,7 +218,8 @@ public class Server {
         }
     }
 
-    private void endGame() {
+
+    private void handleEndGame() {
 
         String winner;
 
@@ -235,7 +240,7 @@ public class Server {
 
         private boolean alive = false;
 
-        public ClientHandler(Socket socket, InputStream input, OutputStream output) throws IOException {
+        public ClientHandler(Socket socket, InputStream input, OutputStream output) {
             this.socket = socket;
             this.input = input;
             this.output = output;
@@ -247,25 +252,33 @@ public class Server {
         public void run() {
             try {
                 while (alive) {
-                    Message message = Protocol.readMessage(input);;
+                    Message message = Protocol.readMessage(input);
+
                     if (message != null) {
                         int type = message.getType();
+
                         if (type == PLAYER_MOVE) {
                             String[] parts = new String(message.getData(), StandardCharsets.UTF_8).split(" ");
                             int x1 = Integer.parseInt(parts[0]);
                             int y1 = Integer.parseInt(parts[1]);
                             int x2 = Integer.parseInt(parts[2]);
                             int y2 = Integer.parseInt(parts[3]);
+
                             handleMove(x1, y1, x2, y2);
-                        } else if (type == INITIALIZE_PLAYER) {
+                        }
+
+                        else if (type == INITIALIZE_PLAYER) {
                             String name = new String(message.getData(), StandardCharsets.UTF_8);
 
                             handlePlayerInitialization(this.id, name);
 
-                        } else if (type == OPEN_CARD_REQUEST) {
+                        }
+
+                        else if (type == OPEN_CARD_REQUEST) {
                             String[] parts = new String(message.getData(), StandardCharsets.UTF_8).split(" ");
                             int x = Integer.parseInt(parts[0]);
                             int y = Integer.parseInt(parts[1]);
+
                             handleCardOpenRequest(x, y);
                         }
                     }
@@ -288,10 +301,6 @@ public class Server {
 
         public OutputStream getOutput() {
             return output;
-        }
-
-        public InputStream getInput() {
-            return input;
         }
 
         public int getId() {

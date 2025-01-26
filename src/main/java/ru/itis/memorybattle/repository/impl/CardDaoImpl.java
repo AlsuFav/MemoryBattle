@@ -2,8 +2,11 @@ package ru.itis.memorybattle.repository.impl;
 
 import ru.itis.memorybattle.core.Card;
 import ru.itis.memorybattle.core.CardType;
+import ru.itis.memorybattle.exceptions.DbConfigException;
+import ru.itis.memorybattle.exceptions.DbException;
 import ru.itis.memorybattle.repository.CardDao;
 import ru.itis.memorybattle.utils.ConnectionProvider;
+import ru.itis.memorybattle.utils.LogMessages;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,7 +18,7 @@ import java.util.List;
 public class CardDaoImpl implements CardDao {
 
     @Override
-    public List<Card> getAllCards() throws SQLException {
+    public List<Card> getAllCards() throws SQLException, DbConfigException {
         List<Card> cards = new ArrayList<>();
         String sql = "SELECT id, unique_card_id, type, image_path FROM cards";
         Connection connection = null;
@@ -33,8 +36,6 @@ public class CardDaoImpl implements CardDao {
                     cards.add(new Card(id, uniqueCardId ,cardType, imagePath));
                 }
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         } finally {
             if (connection != null) {
                 ConnectionProvider.getInstance().releaseConnection(connection);

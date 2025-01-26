@@ -1,0 +1,6 @@
+database.url=
+database.username=
+database.password=
+database.driver=
+
+database.hikari.max-pool-size=10

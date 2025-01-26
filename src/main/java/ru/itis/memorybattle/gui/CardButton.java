@@ -8,7 +8,7 @@ public class CardButton extends JButton {
     private final int col;
     private boolean isFlipped;
     private boolean isMatched;
-    private ImageIcon matchedIcon; // Храним иконку для совпавшей пары
+    private ImageIcon matchedIcon;
 
     public CardButton(int row, int col) {
         this.row = row;
@@ -18,9 +18,9 @@ public class CardButton extends JButton {
 
         setPreferredSize(new Dimension(80, 80));
         setBackground(Color.GRAY);
-        setFocusPainted(false); // Убираем обводку фокуса
-        setContentAreaFilled(false); // Отключаем заливку кнопки
-        setOpaque(true); // Делаем кнопку непрозрачной
+        setFocusPainted(false);
+        setContentAreaFilled(false);
+        setOpaque(true);
     }
 
     public int getRow() {
@@ -34,9 +34,9 @@ public class CardButton extends JButton {
     public void open(String source) {
         isFlipped = !isFlipped;
         ImageIcon icon = new ImageIcon(
-                new ImageIcon(getClass().getResource(source)) // Загружаем из ресурсов
+                new ImageIcon(getClass().getResource(source))
                         .getImage()
-                        .getScaledInstance(80, 80, Image.SCALE_SMOOTH) // Масштабируем изображение
+                        .getScaledInstance(80, 80, Image.SCALE_SMOOTH)
         );
 
         setBackground(Color.WHITE);
@@ -72,7 +72,6 @@ public class CardButton extends JButton {
 
     @Override
     protected void paintComponent(Graphics g) {
-        // Если кнопка совпала, сохраняем белый фон и иконку
         if (isMatched) {
             g.setColor(Color.WHITE);
             g.fillRect(0, 0, getWidth(), getHeight());
@@ -83,7 +82,7 @@ public class CardButton extends JButton {
                 matchedIcon.paintIcon(this, g, iconX, iconY);
             }
         } else {
-            super.paintComponent(g); // Стандартное поведение для остальных кнопок
+            super.paintComponent(g);
         }
     }
 }
