@@ -160,9 +160,12 @@ public class Client extends Component {
                             String source = parts[2];
 
                             mainUI.handleSpecialCardOpen(x, y, source);
-                        } else if (type == SPECIAL_CARD_EXTRA_TURN) {
-
+                        } else if (type == MOVE_AFTER_SPECIAL_CARD_OPEN) {
                             mainUI.handleSpecialCardOpen();
+                        } else if (type == SPECIAL_CARD_EXTRA_TURN) {
+                            mainUI.showSpecialCardExtraTurnOpen();
+                        } else if (type == SPECIAL_CARD_SHUFFLE) {
+                            mainUI.showSpecialCardShuffleOpen();
                         }
                     }
                 }

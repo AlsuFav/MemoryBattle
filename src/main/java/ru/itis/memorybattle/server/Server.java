@@ -87,6 +87,18 @@ public class Server {
         sendMessage(notCurrentPlayer.getId(), GameMessageProvider.createMessage(NOT_YOUR_EXTRA_TURN, "".getBytes()));
     }
 
+    private void sendScores() {
+        StringBuilder scores = new StringBuilder();
+
+        for (Player player : gameLogic.getPlayers()) {
+            scores.append(player.getName() + " " + player.getScores() + " ");
+        }
+
+        Message message = GameMessageProvider.createMessage(SCORES, scores.toString().getBytes());
+
+        sendToAll(message);
+    }
+
     public void sendMessage(int connectionId, Message message) {
         ClientHandler client = clients.get(connectionId);
         try {
@@ -105,13 +117,25 @@ public class Server {
     private synchronized void handleCardOpenRequest (int x, int y) {
         Card card = gameLogic.getCard(x, y);
 
-        if (card.getType().equals(CardType.SPECIAL_CARD_EXTRA_TURN)) {
-            handleSpecialCardExtraTurnOpen(x, y);
+        card.setRevealed(true);
+
+        CardType type = card.getType();
+
+        if (! type.equals(CardType.NORMAL)) {
+            handleSpecialCardOpen(x, y);
+            handleMoveAfterSpecialCardOpen();
+
+            if (type.equals(CardType.SPECIAL_CARD_EXTRA_TURN)) {
+                handleSpecialCardExtraTurnOpen();
+            } else if (type.equals(CardType.SPECIAL_CARD_SHUFFLE)) {
+                handleSpecialCardShuffleOpen();
+            }
         }
 
-
-        Message message = GameMessageProvider.createMessage(OPEN_CARD_RESPONSE, (x + " " + y + " " + card.getImagePath()).getBytes());
-        sendToAll(message);
+        else {
+            Message message = GameMessageProvider.createMessage(OPEN_CARD_RESPONSE, (x + " " + y + " " + card.getImagePath()).getBytes());
+            sendToAll(message);
+        }
     }
 
     private synchronized void handleSpecialCardOpen(int x, int y) {
@@ -121,14 +145,30 @@ public class Server {
         sendToAll(message);
     }
 
-    private synchronized void handleSpecialCardExtraTurnOpen(int x, int y) {
-        handleSpecialCardOpen(x, y);
+    private synchronized void handleMoveAfterSpecialCardOpen() {
+
+        Message message = GameMessageProvider.createMessage(MOVE_AFTER_SPECIAL_CARD_OPEN, "".getBytes());
+
+        ClientHandler currentPlayer = clients.get(gameLogic.getCurrentPlayer().getId());
+        sendMessage(currentPlayer.getId(), message);
+    }
+
+    private synchronized void handleSpecialCardExtraTurnOpen() {
 
         Message message = GameMessageProvider.createMessage(SPECIAL_CARD_EXTRA_TURN, "".getBytes());
 
         gameLogic.getCurrentPlayer().hasExtraTurn(true);
         ClientHandler currentPlayer = clients.get(gameLogic.getCurrentPlayer().getId());
         sendMessage(currentPlayer.getId(), message);
+    }
+
+    private synchronized void handleSpecialCardShuffleOpen() {
+
+        Message message = GameMessageProvider.createMessage(SPECIAL_CARD_SHUFFLE, "".getBytes());
+
+        gameLogic.shuffle();
+
+        sendToAll(message);
     }
 
 
@@ -145,6 +185,8 @@ public class Server {
         if (match) {
             Message message = GameMessageProvider.createMessage(MATCH, (STR."\{x1} \{y1} \{x2} \{y2}").getBytes());
             sendToAll(message);
+
+            sendScores();
 
             if (gameLogic.isGameOver()) {
                 endGame();

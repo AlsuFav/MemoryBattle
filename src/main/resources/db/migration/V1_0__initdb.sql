@@ -24,4 +24,4 @@ VALUES
     (FALSE, FALSE, 7, 'NORMAL', '/images/card7.jpg'),
     (FALSE, FALSE, 7, 'NORMAL', '/images/card7.jpg'),
     (FALSE, FALSE, NULL, 'SPECIAL_CARD_EXTRA_TURN', '/images/special_extra_turn.png'),
-    (FALSE, FALSE, NULL, 'SPECIAL_CARD_HINT', '/images/special_hint.png');
+    (FALSE, FALSE, NULL, 'SPECIAL_CARD_SHUFFLE', '/images/special_hint.png');

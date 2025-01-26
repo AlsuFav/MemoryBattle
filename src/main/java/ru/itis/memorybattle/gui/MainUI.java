@@ -44,6 +44,14 @@ public class MainUI extends JFrame {
         JOptionPane.showMessageDialog(this, "Сейчас дополнительный ход другого игрока.");
     }
 
+    public void showSpecialCardExtraTurnOpen() {
+        JOptionPane.showMessageDialog(this, "У вас теперь есть дополнительный ход!");
+    }
+
+    public void showSpecialCardShuffleOpen() {
+        JOptionPane.showMessageDialog(this, "Все закрытые карты перемешаны!");
+    }
+
 
     // Инициализация доски
     public void initializeGameBoard(int rows, int cols) {
@@ -88,10 +96,12 @@ public class MainUI extends JFrame {
             client.sendCardOpenRequest(secondSelected.getRow(), secondSelected.getCol());
 
             try {
-                Thread.sleep(100);
+                Thread.sleep(200);
             } catch (InterruptedException ex) {
                 throw new RuntimeException(ex);
             }
+
+            if (secondSelected == null) return;
 
             client.sendMove(firstSelected.getRow(), firstSelected.getCol(), secondSelected.getRow(), secondSelected.getCol());
 
@@ -103,6 +113,14 @@ public class MainUI extends JFrame {
     public void handleCardOpen(int x, int y, String source) {
         CardButton button = cardButtons.get(x + "-" + y);
         button.open(source);
+
+        if (secondSelected != null) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
     }
 
     public void handleSpecialCardOpen(int x, int y, String source) {

@@ -62,9 +62,6 @@ public class GameLogic {
             return false; // Нельзя выбрать уже найденные карточки или одну и ту же
         }
 
-        card1.setRevealed(true);
-        card2.setRevealed(true);
-
         if (card1.isSimilar(card2)) {
             card1.setMatched(true);
             card2.setMatched(true);
@@ -81,7 +78,7 @@ public class GameLogic {
     private void checkGameOver() {
         for (Card[] row : board) {
             for (Card card : row) {
-                if (!card.isMatched()) return;
+                if (!card.isMatched() && card.getType().equals(CardType.NORMAL)) return;
             }
         }
         isGameOver = true;
@@ -89,6 +86,31 @@ public class GameLogic {
 
     public boolean isGameOver() {
         return isGameOver;
+    }
+
+    public void shuffle() {
+        List<Card> unrevealedCards = new ArrayList<>();
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                Card card = board[i][j];
+                if (!card.isRevealed()) {
+                    unrevealedCards.add(card);
+                }
+            }
+        }
+
+        Collections.shuffle(unrevealedCards);
+
+        Iterator<Card> iterator = unrevealedCards.iterator();
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (!board[i][j].isRevealed()) {
+                    board[i][j] = iterator.next();
+                }
+            }
+        }
     }
 
 
@@ -108,6 +130,10 @@ public class GameLogic {
 
     public Card getCard(int row, int col) {
         return board[row][col];
+    }
+
+    public List<Player> getPlayers() {
+        return players;
     }
 
     public int getRows() {

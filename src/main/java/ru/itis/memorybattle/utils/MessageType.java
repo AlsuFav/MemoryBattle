@@ -19,11 +19,13 @@ public class MessageType {
     public static final int NOT_YOUR_TURN = 16;
     public static final int OPEN_CARD_REQUEST = 17;
     public static final int OPEN_CARD_RESPONSE = 18;
+    public static final int SCORES = 22;
 
 
     // Особые карточки
     public static final int OPEN_SPECIAL_CARD = 19;
-    public static final int SPECIAL_CARD_EXTRA_TURN = 9;
+    public static final int MOVE_AFTER_SPECIAL_CARD_OPEN = 9;
+    public static final int SPECIAL_CARD_EXTRA_TURN = 23;
     public static final int EXTRA_TURN = 20;
     public static final int NOT_YOUR_EXTRA_TURN = 21;
     public static final int SPECIAL_CARD_SHUFFLE = 10;
