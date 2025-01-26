@@ -10,13 +10,20 @@ import java.util.Map;
 
 public class MainUI extends JFrame {
     private final JPanel boardPanel;
-    private CardButton firstSelected = null;
-    private CardButton secondSelected = null;
-    private final Map<String, CardButton> cardButtons = new HashMap<>();
+    private CardButton firstSelected;
+    private CardButton secondSelected;
+    private final Map<String, CardButton> cardButtons;
     private Client client;
-    private boolean isMyTurn = false;
+    private boolean isMyTurn;
+    private final Map<String, Integer> scores;
 
     public MainUI() {
+
+        firstSelected = null;
+        secondSelected = null;
+        cardButtons = new HashMap<>();
+        isMyTurn = false;
+        scores = new HashMap<>();
 
         setTitle("Memory Game");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -167,8 +174,8 @@ public class MainUI extends JFrame {
     }
 
     // Обработка окончания игры
-    public void handleEndGame(String results) {
-        String result = "Игра окончена! Результаты: " + results;
+    public void handleEndGame(String winner) {
+        String result = "Игра окончена! Победитель: " + winner;
 
         JOptionPane.showMessageDialog(this, result);
         System.exit(0);
@@ -180,5 +187,10 @@ public class MainUI extends JFrame {
 
     public void setMyTurn(boolean isMyTurn) {
         this.isMyTurn = isMyTurn;
+    }
+
+    public void updateScores (String player1, int scores1, String player2, int scores2) {
+        scores.put(player1, scores1);
+        scores.put(player2, scores2);
     }
 }

@@ -54,6 +54,8 @@ public class Server {
 
             sendStartGame();
 
+            sendScores();
+
             sendTurn();
             sendNoTurn();
 
@@ -214,12 +216,13 @@ public class Server {
 
     private void endGame() {
 
-        StringBuilder result = new StringBuilder();
-//        for (Map.Entry<String, Integer> entry : gameLogic.getScores().entrySet()) {
-//            result.append(" ").append(entry.getKey()).append(":").append(entry.getValue());
-//        }
+        String winner;
 
-        Message message = GameMessageProvider.createMessage(END_GAME, result.toString().getBytes());
+        if (gameLogic.getCurrentPlayer().getScores() >= gameLogic.getNotCurrentPlayer().getScores()) {
+            winner = gameLogic.getCurrentPlayer().getName();
+        } else winner = gameLogic.getNotCurrentPlayer().getName();
+
+        Message message = GameMessageProvider.createMessage(END_GAME, winner.getBytes());
         sendToAll(message);
     }
 

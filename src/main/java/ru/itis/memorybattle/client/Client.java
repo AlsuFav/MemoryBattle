@@ -111,6 +111,14 @@ public class Client extends Component {
                             int cols = Integer.parseInt(parts[1]);
 
                             mainUI.initializeGameBoard(rows, cols);
+                        } else if (type == SCORES) {
+                            String[] parts = new String(message.getData(), StandardCharsets.UTF_8).split(" ");
+                            String player1 = parts[0];
+                            int scores1 = Integer.parseInt(parts[1]);
+                            String player2 = parts[2];
+                            int scores2 = Integer.parseInt(parts[3]);
+
+                            mainUI.updateScores(player1, scores1, player2, scores2);
                         } else if (type == TURN) {
                             mainUI.setMyTurn(true);
                             mainUI.showTurn();
@@ -138,14 +146,8 @@ public class Client extends Component {
                             int y2 = Integer.parseInt(parts[3]);
                             mainUI.handleNoMatch(x1, y1, x2, y2);
                         } else if (type == END_GAME) {
-                            String[] parts = Arrays.toString(message.getData()).split(" ");
-                            StringBuilder result = new StringBuilder(" ");
-
-                            for (int i = 1; i < parts.length; i++) {
-                                result.append(parts[i]).append(" ");
-                            }
-
-                            mainUI.handleEndGame(result.toString());
+                            String winner = new String(message.getData(), StandardCharsets.UTF_8);
+                            mainUI.handleEndGame(winner);
                         } else if (type == OPEN_CARD_RESPONSE) {
                             String[] parts = new String(message.getData(), StandardCharsets.UTF_8).split(" ");
                             int x = Integer.parseInt(parts[0]);
