@@ -1,5 +1,6 @@
 package ru.itis.memorybattle.core;
 
+import ru.itis.memorybattle.exceptions.DbConfigException;
 import ru.itis.memorybattle.exceptions.DbException;
 import ru.itis.memorybattle.service.CardService;
 
@@ -13,9 +14,10 @@ public class GameLogic {
     private final List<Player> players;
     private Player currentPlayer;
     private boolean isGameOver;
-    private CardService cardService;
+    private final CardService cardService;
 
-    public GameLogic(int rows, int cols, CardService cardService) {
+
+    public GameLogic(int rows, int cols, CardService cardService) throws DbConfigException {
         this.rows = rows;
         this.cols = cols;
         this.board = new Card[rows][cols];
@@ -26,14 +28,15 @@ public class GameLogic {
         initializeBoard();
     }
 
-    private void initializeBoard() {
+
+    private void initializeBoard() throws DbConfigException {
         List<Card> cards;
         try {
             cards = cardService.getAllCards();
         } catch (SQLException e) {
             throw new DbException();
         }
-        // Перемешиваем карты
+
 //        Collections.shuffle(cards);
 
         Iterator<Card> iterator = cards.iterator();
@@ -44,6 +47,7 @@ public class GameLogic {
         }
     }
 
+
     public void addPlayer(Player player) {
         players.add(player);
 
@@ -51,6 +55,7 @@ public class GameLogic {
             currentPlayer = player;
         }
     }
+
 
     public boolean makeMove(int row1, int col1, int row2, int col2) {
         if (isGameOver) return false;
@@ -67,12 +72,17 @@ public class GameLogic {
             card2.setMatched(true);
             currentPlayer.setScores(currentPlayer.getScores() + 1);
             checkGameOver();
-            return true; // Пара найдена
+            return true;
         } else {
             card1.setRevealed(false);
             card2.setRevealed(false);
-            return false; // Пара не найдена
+            return false;
         }
+    }
+
+
+    public boolean isGameOver() {
+        return isGameOver;
     }
 
     private void checkGameOver() {
@@ -84,9 +94,6 @@ public class GameLogic {
         isGameOver = true;
     }
 
-    public boolean isGameOver() {
-        return isGameOver;
-    }
 
     public void shuffle() {
         List<Card> unrevealedCards = new ArrayList<>();
@@ -118,27 +125,32 @@ public class GameLogic {
         return currentPlayer;
     }
 
-    public void switchPlayer() {
-        currentPlayer = getNotCurrentPlayer();
-    }
-
     public Player getNotCurrentPlayer() {
         if (currentPlayer.equals(players.getFirst())) {
             return  players.getLast();
         } else return players.getFirst();
     }
 
+
+    public void switchPlayer() {
+        currentPlayer = getNotCurrentPlayer();
+    }
+
+
     public Card getCard(int row, int col) {
         return board[row][col];
     }
+
 
     public List<Player> getPlayers() {
         return players;
     }
 
+
     public int getRows() {
         return rows;
     }
+
 
     public int getCols() {
         return cols;

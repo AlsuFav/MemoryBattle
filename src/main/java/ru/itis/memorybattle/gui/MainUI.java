@@ -18,7 +18,6 @@ public class MainUI extends JFrame {
     private final Map<String, Integer> scores;
 
     public MainUI() {
-
         firstSelected = null;
         secondSelected = null;
         cardButtons = new HashMap<>();
@@ -34,6 +33,7 @@ public class MainUI extends JFrame {
         pack();
         setVisible(true);
     }
+
 
     public void showTurn() {
         JOptionPane.showMessageDialog(this, "Ваш ход!");
@@ -60,7 +60,6 @@ public class MainUI extends JFrame {
     }
 
 
-    // Инициализация доски
     public void initializeGameBoard(int rows, int cols) {
         boardPanel.setLayout(new GridLayout(rows, cols));
         add(boardPanel, BorderLayout.CENTER);
@@ -81,7 +80,7 @@ public class MainUI extends JFrame {
         boardPanel.repaint();
     }
 
-    // Обработка клика на карточку
+
     private void handleCardClick(ActionEvent e) {
         if (!isMyTurn) {
             showNoTurn();
@@ -112,10 +111,11 @@ public class MainUI extends JFrame {
 
             client.sendMove(firstSelected.getRow(), firstSelected.getCol(), secondSelected.getRow(), secondSelected.getCol());
 
-            firstSelected = null; // Сбросить после хода
+            firstSelected = null;
             secondSelected = null;
         }
     }
+
 
     public void handleCardOpen(int x, int y, String source) {
         CardButton button = cardButtons.get(x + "-" + y);
@@ -130,6 +130,7 @@ public class MainUI extends JFrame {
         }
     }
 
+
     public void handleSpecialCardOpen(int x, int y, String source) {
         CardButton card = cardButtons.get(x + "-" + y);
         card.open(source);
@@ -138,18 +139,20 @@ public class MainUI extends JFrame {
         card.setEnabled(false);
     }
 
+
     public void handleSpecialCardOpen() {
         if (secondSelected != null) {
             secondSelected = null;
         } else firstSelected = null;
     }
 
+
     public void handleCardClose(int x, int y) {
         CardButton button = cardButtons.get(x + "-" + y);
         button.close();
     }
 
-    // Обработка совпадения карт
+
     public void handleMatch(int x1, int y1, int x2, int y2) {
 
         SwingUtilities.invokeLater(() -> {
@@ -164,7 +167,7 @@ public class MainUI extends JFrame {
         });
     }
 
-    // Обработка несоответствия карт
+
     public void handleNoMatch(int x1, int y1, int x2, int y2) {
 
         SwingUtilities.invokeLater(() -> {
@@ -173,7 +176,13 @@ public class MainUI extends JFrame {
         });
     }
 
-    // Обработка окончания игры
+
+    public void updateScores (String player1, int scores1, String player2, int scores2) {
+        scores.put(player1, scores1);
+        scores.put(player2, scores2);
+    }
+
+
     public void handleEndGame(String winner) {
         String result = "Игра окончена! Победитель: " + winner;
 
@@ -181,16 +190,13 @@ public class MainUI extends JFrame {
         System.exit(0);
     }
 
+
     public void setClient(Client client) {
         this.client = client;
     }
 
+
     public void setMyTurn(boolean isMyTurn) {
         this.isMyTurn = isMyTurn;
-    }
-
-    public void updateScores (String player1, int scores1, String player2, int scores2) {
-        scores.put(player1, scores1);
-        scores.put(player2, scores2);
     }
 }
