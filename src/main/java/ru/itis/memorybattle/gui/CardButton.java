@@ -86,4 +86,3 @@ public class CardButton extends JButton {
         }
     }
 }
-
