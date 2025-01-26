@@ -1,4 +1,4 @@
-package ru.itis.memorybattle.gui.components;
+package ru.itis.memorybattle.gui;
 
 import javax.swing.*;
 import java.awt.*;
