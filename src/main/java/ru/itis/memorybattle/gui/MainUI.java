@@ -10,6 +10,11 @@ import java.util.Map;
 
 public class MainUI extends JFrame {
     private final JPanel boardPanel;
+    private final JPanel scorePanel;
+    private final JPanel player1Panel;
+    private final JPanel player2Panel;
+    private final JLabel player1ScoreLabel;
+    private final JLabel player2ScoreLabel;
     private CardButton firstSelected;
     private CardButton secondSelected;
     private final Map<String, CardButton> cardButtons;
@@ -28,10 +33,56 @@ public class MainUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
+        // Панель для отображения счета
+        scorePanel = new JPanel();
+        scorePanel.setLayout(new GridLayout(1, 2));
+        scorePanel.setBackground(new Color(30, 30, 30));
+
+        // Панель и метка для игрока 1
+        player1Panel = createPlayerPanel("Игрок 1", new Color(100, 149, 237));
+        player1ScoreLabel = new JLabel("0", JLabel.CENTER);
+        styleScoreLabel(player1ScoreLabel);
+        player1Panel.add(player1ScoreLabel, BorderLayout.CENTER);
+
+        // Панель и метка для игрока 2
+        player2Panel = createPlayerPanel("Игрок 2", new Color(255, 165, 0));
+        player2ScoreLabel = new JLabel("0", JLabel.CENTER);
+        styleScoreLabel(player2ScoreLabel);
+        player2Panel.add(player2ScoreLabel, BorderLayout.CENTER);
+
+        // Добавляем панели игроков в общую панель счета
+        scorePanel.add(player1Panel);
+        scorePanel.add(player2Panel);
+
+        // Добавляем панель счета в верхнюю часть окна
+        add(scorePanel, BorderLayout.NORTH);
+
         boardPanel = new JPanel();
 
         pack();
         setVisible(true);
+    }
+
+    private JPanel createPlayerPanel(String playerName, Color color) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        panel.setBackground(new Color(50, 50, 50)); // Темный фон для карточки игрока
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(color, 2, true), // Рамка с цветом игрока
+                BorderFactory.createEmptyBorder(10, 10, 10, 10) // Отступы внутри
+        ));
+
+        JLabel nameLabel = new JLabel(playerName, JLabel.CENTER);
+        nameLabel.setFont(new Font("Sans-serif", Font.BOLD, 16));
+        nameLabel.setForeground(color);
+        panel.add(nameLabel, BorderLayout.NORTH);
+
+        return panel;
+    }
+
+    private void styleScoreLabel(JLabel label) {
+        label.setFont(new Font("Sans-serif", Font.BOLD, 32));
+        label.setForeground(Color.WHITE);
     }
 
 
@@ -224,6 +275,9 @@ public class MainUI extends JFrame {
     public void updateScores (String player1, int scores1, String player2, int scores2) {
         scores.put(player1, scores1);
         scores.put(player2, scores2);
+
+        player1ScoreLabel.setText(player1 + ": " + scores1);
+        player2ScoreLabel.setText(player2 + ": " + scores2);
     }
 
 
