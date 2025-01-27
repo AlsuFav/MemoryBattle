@@ -56,6 +56,7 @@ public class MainUI extends JFrame {
     }
 
     public void showSpecialCardShuffleOpen() {
+        shuffleAnimation();
         JOptionPane.showMessageDialog(this, "Все закрытые карты перемешаны!");
     }
 
@@ -144,46 +145,50 @@ public class MainUI extends JFrame {
         if (secondSelected != null) {
             secondSelected = null;
         } else firstSelected = null;
-//        shuffleAnimation();
     }
 
-//    public void shuffleAnimation() {
-//        // Создаём массив всех кнопок
-//        CardButton[] buttons = cardButtons.values().toArray(new CardButton[0]);
-//
-//        // Таймер для анимации
-//        Timer timer = new Timer(100, null); // 50 мс между кадрами
-//        final int[] step = {0}; // Счётчик шагов анимации
-//
-//        timer.addActionListener(e -> {
-//            if (step[0] < 10) { // 10 шагов анимации
-//                for (CardButton button : buttons) {
-//                    // Случайное смещение кнопки для "тряски"
-//                    int dx = (int) (Math.random() * 10 - 5); // Смещение по X (-5 до +5)
-//                    int dy = (int) (Math.random() * 10 - 5); // Смещение по Y (-5 до +5)
-//
-//                    // Сохраняем оригинальное положение
-//                    Point originalLocation = button.getLocation();
-//
-//                    // Устанавливаем новое положение
-//                    button.setLocation(originalLocation.x + dx, originalLocation.y + dy);
-//
-//                    // Возвращаем кнопку на место через 50 мс
-//                    Timer resetTimer = new Timer(50, ev -> button.setLocation(originalLocation));
-//                    resetTimer.setRepeats(false);
-//                    resetTimer.start();
-//                }
-//
-//                step[0]++;
-//            } else {
-//                // Останавливаем таймер, когда анимация завершена
-//                timer.stop();
-//            }
-//        });
-//
-//        // Запуск таймера
-//        timer.start();
-//    }
+    public void shuffleAnimation() {
+        // Создаём массив всех кнопок
+        CardButton[] buttons = cardButtons.values().toArray(new CardButton[0]);
+
+        // Сохраняем исходные положения для всех кнопок
+        Map<CardButton, Point> originalLocations = new HashMap<>();
+        for (CardButton button : buttons) {
+            originalLocations.put(button, button.getLocation());
+        }
+
+        // Таймер для анимации
+        Timer timer = new Timer(100, null); // 100 мс между кадрами
+        final int[] step = {0}; // Счётчик шагов анимации
+
+        timer.addActionListener(e -> {
+            if (step[0] < 10) { // 10 шагов анимации
+                for (CardButton button : buttons) {
+                    // Случайное смещение кнопки для "тряски"
+                    int dx = (int) (Math.random() * 10 - 5); // Смещение по X (-5 до +5)
+                    int dy = (int) (Math.random() * 10 - 5); // Смещение по Y (-5 до +5)
+
+                    // Устанавливаем новое положение
+                    Point originalLocation = originalLocations.get(button);
+                    button.setLocation(originalLocation.x + dx, originalLocation.y + dy);
+                }
+
+                step[0]++;
+            } else {
+                // Когда анимация завершена, возвращаем кнопки в исходное положение
+                for (CardButton button : buttons) {
+                    Point originalLocation = originalLocations.get(button);
+                    button.setLocation(originalLocation);
+                }
+
+                // Останавливаем таймер, когда анимация завершена
+                timer.stop();
+            }
+        });
+
+        // Запуск таймера
+        timer.start();
+    }
 
 
     public void handleCardClose(int x, int y) {
