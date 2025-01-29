@@ -45,6 +45,12 @@ public class Server {
 
                 new Thread(client).start();
 
+                Thread.sleep(200);
+
+                if (clients.size() == 1) {
+                    sendWaiting();
+                }
+
                 System.out.println("Игрок подключён...");
             }
 
@@ -80,6 +86,11 @@ public class Server {
         }
     }
 
+    private synchronized void sendWaiting() {
+        ClientHandler currentPlayer = clients.get(gameLogic.getCurrentPlayer().getId());
+        Message message = GameMessageProvider.createMessage(WAIT_ANOTHER_PLAYER, "".getBytes());
+        sendMessage(currentPlayer.getId(), message);
+    }
 
     private synchronized void sendStartGame() {
         Message message = GameMessageProvider.createMessage(START_GAME,(gameLogic.getRows() + " " + gameLogic.getCols()).getBytes());

@@ -18,7 +18,10 @@ public class ClientApp {
         }
 
         String serverIP = configUI.getIp();
+
         int serverPort = configUI.getPort();
+
+
         String name = configUI.getName();
 
         MainUI mainUI = new MainUI();
