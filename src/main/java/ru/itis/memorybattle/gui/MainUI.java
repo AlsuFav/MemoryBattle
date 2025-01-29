@@ -85,6 +85,9 @@ public class MainUI extends JFrame {
         label.setForeground(Color.WHITE);
     }
 
+    public void showWaiting() {
+        JOptionPane.showMessageDialog(this, "Ожидаем второго игрока...");
+    }
 
     public void showTurn() {
         JOptionPane.showMessageDialog(this, "Ваш ход!");

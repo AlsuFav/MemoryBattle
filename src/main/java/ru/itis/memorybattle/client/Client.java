@@ -124,6 +124,10 @@ public class Client extends Component {
                             mainUI.updateScores(player1, scores1, player2, scores2);
                         }
 
+                        else if (type == WAIT_ANOTHER_PLAYER) {
+                            mainUI.showWaiting();
+                        }
+
                         else if (type == TURN) {
                             mainUI.setMyTurn(true);
                             mainUI.showTurn();
