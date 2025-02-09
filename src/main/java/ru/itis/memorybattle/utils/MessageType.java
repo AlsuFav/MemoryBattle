@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 public class MessageType {
 
+    public static final int WAIT_ANOTHER_PLAYER = 2;
     public static final int INITIALIZE_PLAYER = 3;
     public static final int START_GAME = 4;
 

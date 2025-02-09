@@ -10,6 +10,11 @@ import java.util.Map;
 
 public class MainUI extends JFrame {
     private final JPanel boardPanel;
+    private final JPanel scorePanel;
+    private final JPanel player1Panel;
+    private final JPanel player2Panel;
+    private final JLabel player1ScoreLabel;
+    private final JLabel player2ScoreLabel;
     private CardButton firstSelected;
     private CardButton secondSelected;
     private final Map<String, CardButton> cardButtons;
@@ -28,12 +33,61 @@ public class MainUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
+        // Панель для отображения счета
+        scorePanel = new JPanel();
+        scorePanel.setLayout(new GridLayout(1, 2));
+        scorePanel.setBackground(new Color(30, 30, 30));
+
+        // Панель и метка для игрока 1
+        player1Panel = createPlayerPanel("Игрок 1", new Color(100, 149, 237));
+        player1ScoreLabel = new JLabel("0", JLabel.CENTER);
+        styleScoreLabel(player1ScoreLabel);
+        player1Panel.add(player1ScoreLabel, BorderLayout.CENTER);
+
+        // Панель и метка для игрока 2
+        player2Panel = createPlayerPanel("Игрок 2", new Color(255, 165, 0));
+        player2ScoreLabel = new JLabel("0", JLabel.CENTER);
+        styleScoreLabel(player2ScoreLabel);
+        player2Panel.add(player2ScoreLabel, BorderLayout.CENTER);
+
+        // Добавляем панели игроков в общую панель счета
+        scorePanel.add(player1Panel);
+        scorePanel.add(player2Panel);
+
+        // Добавляем панель счета в верхнюю часть окна
+        add(scorePanel, BorderLayout.NORTH);
+
         boardPanel = new JPanel();
 
         pack();
         setVisible(true);
     }
 
+    private JPanel createPlayerPanel(String playerName, Color color) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        panel.setBackground(new Color(50, 50, 50)); // Темный фон для карточки игрока
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(color, 2, true), // Рамка с цветом игрока
+                BorderFactory.createEmptyBorder(10, 10, 10, 10) // Отступы внутри
+        ));
+
+        JLabel nameLabel = new JLabel(playerName, JLabel.CENTER);
+        nameLabel.setFont(new Font("Sans-serif", Font.BOLD, 16));
+        nameLabel.setForeground(color);
+        panel.add(nameLabel, BorderLayout.NORTH);
+
+        return panel;
+    }
+
+    private void styleScoreLabel(JLabel label) {
+        label.setFont(new Font("Sans-serif", Font.BOLD, 32));
+        label.setForeground(Color.WHITE);
+    }
+
+    public void showWaiting() {
+        JOptionPane.showMessageDialog(this, "Ожидаем второго игрока...");
+    }
 
     public void showTurn() {
         JOptionPane.showMessageDialog(this, "Ваш ход!");
@@ -56,12 +110,13 @@ public class MainUI extends JFrame {
     }
 
     public void showSpecialCardShuffleOpen() {
+        shuffleAnimation();
         JOptionPane.showMessageDialog(this, "Все закрытые карты перемешаны!");
     }
 
 
     public void initializeGameBoard(int rows, int cols) {
-        boardPanel.setLayout(new GridLayout(rows, cols));
+        boardPanel.setLayout(new GridLayout(rows, cols, 10, 10));
         add(boardPanel, BorderLayout.CENTER);
 
         boardPanel.removeAll();
@@ -146,6 +201,49 @@ public class MainUI extends JFrame {
         } else firstSelected = null;
     }
 
+    public void shuffleAnimation() {
+        // Создаём массив всех кнопок
+        CardButton[] buttons = cardButtons.values().toArray(new CardButton[0]);
+
+        // Сохраняем исходные положения для всех кнопок
+        Map<CardButton, Point> originalLocations = new HashMap<>();
+        for (CardButton button : buttons) {
+            originalLocations.put(button, button.getLocation());
+        }
+
+        // Таймер для анимации
+        Timer timer = new Timer(100, null); // 100 мс между кадрами
+        final int[] step = {0}; // Счётчик шагов анимации
+
+        timer.addActionListener(e -> {
+            if (step[0] < 10) { // 10 шагов анимации
+                for (CardButton button : buttons) {
+                    // Случайное смещение кнопки для "тряски"
+                    int dx = (int) (Math.random() * 10 - 5); // Смещение по X (-5 до +5)
+                    int dy = (int) (Math.random() * 10 - 5); // Смещение по Y (-5 до +5)
+
+                    // Устанавливаем новое положение
+                    Point originalLocation = originalLocations.get(button);
+                    button.setLocation(originalLocation.x + dx, originalLocation.y + dy);
+                }
+
+                step[0]++;
+            } else {
+                // Когда анимация завершена, возвращаем кнопки в исходное положение
+                for (CardButton button : buttons) {
+                    Point originalLocation = originalLocations.get(button);
+                    button.setLocation(originalLocation);
+                }
+
+                // Останавливаем таймер, когда анимация завершена
+                timer.stop();
+            }
+        });
+
+        // Запуск таймера
+        timer.start();
+    }
+
 
     public void handleCardClose(int x, int y) {
         CardButton button = cardButtons.get(x + "-" + y);
@@ -180,6 +278,9 @@ public class MainUI extends JFrame {
     public void updateScores (String player1, int scores1, String player2, int scores2) {
         scores.put(player1, scores1);
         scores.put(player2, scores2);
+
+        player1ScoreLabel.setText(player1 + ": " + scores1);
+        player2ScoreLabel.setText(player2 + ": " + scores2);
     }
 
 

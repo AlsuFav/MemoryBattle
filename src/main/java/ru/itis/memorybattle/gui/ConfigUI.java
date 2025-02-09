@@ -12,33 +12,60 @@ public class ConfigUI extends JFrame {
     private JTextField portField;
     private JTextField nameField;
 
-
     private String ip;
     private int port;
     private String name;
 
     public ConfigUI() {
-        setTitle("Configuration");
+        setTitle("Memory Battle - Configuration");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new GridLayout(5, 2, 10, 10));
+        setLayout(new BorderLayout());
 
-        add(new JLabel("IP:"));
+        // Панель заголовка
+        JPanel headerPanel = new JPanel();
+        headerPanel.setBackground(new Color(190, 147, 250));
+        headerPanel.setPreferredSize(new Dimension(400, 60));
+        JLabel titleLabel = new JLabel("Memory Battle");
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        headerPanel.add(titleLabel);
+
+        // Основная панель
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new GridLayout(4, 2, 10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Поля для ввода
+        mainPanel.add(new JLabel("IP:"));
         ipField = new JTextField(IP);
-        add(ipField);
+        mainPanel.add(ipField);
 
-        add(new JLabel("Port:"));
+        mainPanel.add(new JLabel("Port:"));
         portField = new JTextField(Integer.toString(PORT));
-        add(portField);
+        mainPanel.add(portField);
 
-        add(new JLabel("Name:"));
+        mainPanel.add(new JLabel("Name:"));
         nameField = new JTextField("");
-        add(nameField);
+        mainPanel.add(nameField);
 
+        // Кнопка подключения
         JButton connectButton = new JButton("Connect");
+        connectButton.setFont(new Font("Arial", Font.BOLD, 14));
+        connectButton.setBackground(new Color(60, 179, 113)); // Зеленый цвет
+        connectButton.setForeground(Color.WHITE);
         connectButton.addActionListener(this::handleConnect);
-        add(connectButton);
 
-        setSize(300, 200);
+        // Панель для кнопки
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(connectButton);
+
+        // Добавление панелей в JFrame
+        add(headerPanel, BorderLayout.NORTH);
+        add(mainPanel, BorderLayout.CENTER);
+        add(buttonPanel, BorderLayout.SOUTH);
+
+
+        setSize(400, 300);
         setLocationRelativeTo(null);
         setVisible(true);
     }
@@ -48,6 +75,10 @@ public class ConfigUI extends JFrame {
             ip = ipField.getText();
             port = Integer.parseInt(portField.getText());
             name = nameField.getText();
+            if (name.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter your name!");
+                return;
+            }
             dispose();
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Please enter valid values!");
@@ -64,5 +95,9 @@ public class ConfigUI extends JFrame {
 
     public String getName() {
         return name;
+    }
+
+    public static void main(String[] args) {
+        new ConfigUI();
     }
 }
